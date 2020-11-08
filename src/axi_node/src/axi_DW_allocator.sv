@@ -109,6 +109,7 @@ redirect_mop
 )
 mop1
 (
+.clk(clk),
 .rst_n(rst_n),
 .wdata_i(wdata_i),
 .wvalid_i(wvalid_i),

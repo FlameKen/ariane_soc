@@ -20,10 +20,10 @@ always @ (*)begin
       begin
            for(i=0;i<N_INIT_PORT;i++)
            begin
-              if(i ==target[i])begin
+              if(1 == target[i])begin
                   match[j][i]  =  match_region_int_i[j][source[i]];
               end
-              else if (i == source[i])begin
+              else if (1 == source[i])begin
                  match[j][i]  =  0;
               end
               else begin
@@ -33,18 +33,22 @@ always @ (*)begin
       end
 end
 always @ (*)begin
-for(i=0;i<N_INIT_PORT;i++)
+  for(j=0;j<N_REGION;j++)
   begin
-      if(select[i]) begin
+    for(i=0;i<N_INIT_PORT;i++)
+    begin
+      if(select[i]) 
+      begin
         for(j=0;j<N_REGION;j++)
         begin
-          match_region_int_o[j] = match[j];
+          match_region_int_o[j][i] = match[j][i];
         end
       end
-      else begin
-        match_region_int_o = match_region_int_i;
+      else 
+      begin
+        match_region_int_o[j][i] = match_region_int_i[j][i];
       end
+    end
   end
-  
 end
 endmodule
