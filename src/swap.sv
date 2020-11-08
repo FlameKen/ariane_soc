@@ -14,41 +14,37 @@ module swap
   output  logic [N_REGION-1:0][N_INIT_PORT-1:0]                match_region_int_o
 );
 logic [N_REGION-1:0][N_INIT_PORT-1:0]   match;
+logic bool;
+integer t,s;
 integer i,j;
 always @ (*)begin
       for(j=0;j<N_REGION;j++)
       begin
-           for(i=0;i<N_INIT_PORT;i++)
-           begin
-              if(1 == target[i])begin
-                  match[j][i]  =  match_region_int_i[j][source[i]];
-              end
-              else if (1 == source[i])begin
-                 match[j][i]  =  0;
-              end
-              else begin
-                  match[j][i]  =  match_region_int_i[j][i];
-              end
-           end
+        bool = 0;
+        for(i=0;i<N_INIT_PORT;i++)
+        begin
+          if(1 == source[i]&& select[i])begin
+            match[j][i]  =  0;
+            s = i;
+            t = target[i];
+            bool = 1;
+          end
+          else begin
+            match[j][i]  =  match_region_int_i[j][i];
+          end
+        end
+        if(bool == 1)
+          match[j][t] = match_region_int_i[j][s];
       end
+
 end
 always @ (*)begin
-  for(j=0;j<N_REGION;j++)
-  begin
     for(i=0;i<N_INIT_PORT;i++)
     begin
-      if(select[i]) 
+      for(j=0;j<N_REGION;j++)
       begin
-        for(j=0;j<N_REGION;j++)
-        begin
-          match_region_int_o[j][i] = match[j][i];
-        end
-      end
-      else 
-      begin
-        match_region_int_o[j][i] = match_region_int_i[j][i];
+        match_region_int_o[j][i] = match[j][i];
       end
     end
-  end
 end
 endmodule

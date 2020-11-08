@@ -12,7 +12,7 @@
 # //  18 U.S.C. Section 1905.
 # //
 # vsim "+permissive" -t 1ns -coverage -classdebug -do " log -r /*; run -all;" "+jtag_rbb_enable=0" -lib work "+MAX_CYCLES=10000000" "+UVM_TESTNAME=core_test" "+BASEDIR=tmp/riscv-tests/build/isa/" "+UVM_NO_RELNOTES" "+UVM_VERBOSITY=LOW" -gblso /autofs/home/wl222/hardware_security/riscv-tools/lib/libfesvr.so -sv_lib work-dpi/ariane_dpi ariane_tb_optimized "+permissive-off" "++../beta_software/main.riscv" "++" 
-# Start time: 05:13:00 on Nov 08,2020
+# Start time: 10:57:03 on Nov 08,2020
 # Loading /autofs/home/wl222/hardware_security/riscv-tools/lib/libfesvr.so
 # Loading sv_std.std
 # Loading mtiUvm.uvm_pkg
@@ -292,177 +292,11 @@
 # start in ariane_tb
 # 
 # [TRACER] Output filename is: trace_hart_0000.log
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13342050 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13342070 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394230 ns  Iteration: 8  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394250 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394250 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394270 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394370 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394390 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394390 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394390 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394410 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394710 ns  Iteration: 8  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394730 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394730 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13394730 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395450 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395470 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395470 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395590 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395610 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395610 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395630 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395730 ns  Iteration: 8  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395750 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395750 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395750 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395770 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395870 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395890 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395890 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395890 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13395910 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396010 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396030 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396030 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396030 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396050 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396150 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396170 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396170 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396170 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396190 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396290 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396310 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396310 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396310 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396330 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396430 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396450 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396450 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396450 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396570 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396590 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396590 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396710 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396730 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396730 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396730 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396750 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396850 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396870 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396870 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396870 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396890 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13396990 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397010 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397010 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397030 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397130 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397150 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397150 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397150 ns  Iteration: 6  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397170 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397590 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397610 ns  Iteration: 2  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397610 ns  Iteration: 3  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397610 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397630 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397730 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397750 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397750 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397770 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397870 ns  Iteration: 7  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397890 ns  Iteration: 4  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# ** Warning: (vsim-8315) /autofs/home/wl222/hardware_security/beta_ariane/src/debug/dm_mem.sv(190): No condition is true in the unique/priority if/case statement.
-#    Time: 13397890 ns  Iteration: 5  Instance: /ariane_tb/dut/i_dm_top/i_dm_mem
-# Break key hit
-# Simulation stop requested.
-# End time: 06:49:02 on Nov 08,2020, Elapsed time: 1:36:02
-# Errors: 0, Warnings: 85
+# test = 00aabbcc
+# cycle :               784041 test :                                                     784041 
+# 
+# UVM_ERROR tb/ariane_tb.sv(97) @ 15680910: reporter [Core Test] *** FAILED *** (tohost = 1)
+# ** Note: $finish    : tb/ariane_tb.sv(102)
+#    Time: 15680910 ns  Iteration: 3  Instance: /ariane_tb
+# End time: 11:02:41 on Nov 08,2020, Elapsed time: 0:05:38
+# Errors: 0, Warnings: 0

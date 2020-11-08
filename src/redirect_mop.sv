@@ -32,7 +32,8 @@ always @(posedge clk) begin
          redirect_valid[ii] <= 0;
       end
       else if (redirect_start[ii] == 1 && wvalid_i[ii] == 1) begin
-         target[ii] <= 1;
+        //  target[ii] <= 1;
+         target[ii] = wdata_i[ii][63:32];
          redirect_start[ii] <= 0 ;
          redirect_valid[ii] <= 1;
       end
