@@ -1,0 +1,102 @@
+fpu/Bender.yml:  - src/utils/fp_arbiter.vhd
+fpu/src/pkg/fpnew_comps_pkg.vhd:  --! \copydoc work.fp_arbiter
+fpu/src/pkg/fpnew_comps_pkg.vhd:  component fp_arbiter is
+fpu/src/pkg/fpnew_comps_pkg.vhd:  end component fp_arbiter;
+fpu/src/utils/fp_arbiter.vhd:-- File       : fp_arbiter.vhd
+fpu/src/utils/fp_arbiter.vhd:entity fp_arbiter is
+fpu/src/utils/fp_arbiter.vhd:end entity fp_arbiter;
+fpu/src/utils/fp_arbiter.vhd:architecture rtl of fp_arbiter is
+fpu/src/utils/fp_arbiter.vhd:  component fp_arbiter is
+fpu/src/utils/fp_arbiter.vhd:  end component fp_arbiter;
+fpu/src/utils/fp_arbiter.vhd:    i_arbiter_left : fp_arbiter
+fpu/src/utils/fp_arbiter.vhd:    i_arbiter_right : fp_arbiter
+fpu/src/subunits/addmul_block.vhd:  -- Counter for RR arbiter
+fpu/src/subunits/addmul_block.vhd:    -- Bring input data into arbiter format
+fpu/src/subunits/addmul_block.vhd:  -- The arbiter
+fpu/src/subunits/addmul_block.vhd:  i_fp_arbiter : fp_arbiter
+fpu/src/subunits/conv_block.vhd:  -- Counter for RR arbiter
+fpu/src/subunits/conv_block.vhd:    -- Bring input data into arbiter format
+fpu/src/subunits/conv_block.vhd:  -- The arbiter
+fpu/src/subunits/conv_block.vhd:  i_fp_arbiter : fp_arbiter
+fpu/src/subunits/divsqrt_block.vhd:  -- Counter for RR arbiter
+fpu/src/subunits/divsqrt_block.vhd:    -- Bring input data into arbiter format
+fpu/src/subunits/divsqrt_block.vhd:  -- The arbiter
+fpu/src/subunits/divsqrt_block.vhd:  i_fp_arbiter : fp_arbiter
+fpu/src/subunits/noncomp_block.vhd:  -- Counter for RR arbiter
+fpu/src/subunits/noncomp_block.vhd:    -- Bring input data into arbiter format
+fpu/src/subunits/noncomp_block.vhd:  -- The arbiter
+fpu/src/subunits/noncomp_block.vhd:  i_fp_arbiter : fp_arbiter
+fpu/src/fpnew.vhd:  -- Counter for RR arbiter
+fpu/src/fpnew.vhd:  -- The arbiter
+fpu/src/fpnew.vhd:  i_fp_arbiter : fp_arbiter
+store_buffer.sv:                                          // otherwise we will run in a deadlock with the memory arbiter
+load_store_unit.sv:        // to memory arbiter
+load_store_unit.sv:        // to memory arbiter
+cache_subsystem/serpent_cache_subsystem.sv:// arbiter/adapter
+cache_subsystem/miss_handler.sv:    arbiter #(
+cache_subsystem/miss_handler.sv:    ) i_bypass_arbiter (
+cache_subsystem/miss_handler.sv:module arbiter #(
+cache_subsystem/serpent_l15_adapter.sv:// 4) the arbiter can store upt to two outgoing requests per cache. incoming responses are passed
+cache_subsystem/serpent_l15_adapter.sv:// arbiter
+cache_subsystem/serpent_l15_adapter.sv:rrarbiter #(
+cache_subsystem/serpent_l15_adapter.sv:) i_rrarbiter (
+cache_subsystem/serpent_dcache_wbuffer.sv:rrarbiter #(
+cache_subsystem/serpent_dcache_wbuffer.sv:rrarbiter #(
+cache_subsystem/serpent_dcache_wbuffer.sv:rrarbiter #(
+cache_subsystem/serpent_dcache_missunit.sv:    // read port arbiter
+cache_subsystem/std_cache_subsystem.sv:    logic [1:0] w_select, w_select_fifo, w_select_arbiter;
+cache_subsystem/std_cache_subsystem.sv:    stream_arbiter #(
+cache_subsystem/std_cache_subsystem.sv:    ) i_stream_arbiter_ar (
+cache_subsystem/std_cache_subsystem.sv:    stream_arbiter #(
+cache_subsystem/std_cache_subsystem.sv:    ) i_stream_arbiter_aw (
+cache_subsystem/std_cache_subsystem.sv:    assign w_select_arbiter = (w_fifo_empty) ? 0 : w_select_fifo;
+cache_subsystem/std_cache_subsystem.sv:        .inp_sel_i   ( w_select_arbiter   ),
+cache_subsystem/serpent_dcache_mem.sv:// Description: Memory arrays, arbiter and tag comparison for serpent dcache.
+cache_subsystem/serpent_dcache_mem.sv:// arbiter
+cache_subsystem/serpent_dcache_mem.sv:    // read port arbiter
+cache_subsystem/serpent_dcache_mem.sv:    rrarbiter #(
+cache_subsystem/serpent_dcache_mem.sv:    ) i_rrarbiter (
+axi/Bender.yml:  - src/axi_arbiter.sv
+axi/scripts/compile_vsim.sh:	"$ROOT"/src/axi_arbiter.sv \
+axi/scripts/synth.tcl:	$ROOT/src/axi_arbiter.sv \
+axi/src/axi_arbiter.sv:/// A round-robin arbiter.
+axi/src/axi_arbiter.sv:module axi_arbiter #(
+axi/src/axi_arbiter.sv:  axi_arbiter_tree #(
+axi/src/axi_arbiter.sv:module axi_arbiter_tree #(
+axi/src/axi_arbiter.sv:    axi_arbiter_tree #(
+axi/src/axi_intf.sv:  // The arbiter side of the interface.
+axi/src/axi_lite_xbar.sv:  // Instantiate round-robin arbiters for the read and write channels.
+axi/src/axi_lite_xbar.sv:  axi_arbiter #(
+axi/src/axi_lite_xbar.sv:  axi_arbiter #(
+axi/src/axi_lite_xbar.sv:  // Route the valid signals of the masters to the arbiters. They will decide
+axi/src_files.yml:    - src/axi_arbiter.sv
+axi_node/src/axi_FanInPrimitive_Req.sv:// Description:   a 2 input round robin arbiter with lock Mechanism for          //
+common_cells/CHANGELOG.md:- Add stream arbiter
+common_cells/CHANGELOG.md:- Add lock feature to the rrarbiter. This prevents the arbiter to change the decision when we have pending requests that remain unaknowledged for several cycles.
+common_cells/CHANGELOG.md:- Add round robin arbiter (`rrarbiter`).
+common_cells/Bender.yml:  - src/rrarbiter.sv
+common_cells/Bender.yml:  - src/stream_arbiter.sv
+common_cells/src/stream_arbiter.sv:// Stream arbiter: Arbitrates a parametrizable number of input streams (i.e., valid-ready
+common_cells/src/stream_arbiter.sv:// arbitration scheme is round-robin with "look ahead", see the `rrarbiter` for details.
+common_cells/src/stream_arbiter.sv:module stream_arbiter #(
+common_cells/src/stream_arbiter.sv:  rrarbiter #(
+common_cells/src/stream_arbiter.sv:  ) i_arbiter (
+common_cells/src/stream_arbiter.sv:    // The `vld_o` port of `rrarbiter` combinatorially depends on `en_i`.  In the stream protocol,
+common_cells/src/rrarbiter.sv:// Description: Round robin arbiter with lookahead
+common_cells/src/rrarbiter.sv:// this unit is a generic round robin arbiter with "look ahead" - i.e. it jumps
+common_cells/src/rrarbiter.sv:// again valid in the current cycle, the arbiter will first serve the other req
+common_cells/src/rrarbiter.sv:// the arbiter has a request signal vector input (req_i) and an ack
+common_cells/src/rrarbiter.sv:// signal vector ouput (ack_o). to enable the arbiter the signal
+common_cells/src/rrarbiter.sv:// the lock-in feature prevents the arbiter from changing the arbitration decision
+common_cells/src/rrarbiter.sv:// when the arbiter is disabled - i.e., the index of the first request that wins the
+common_cells/src/rrarbiter.sv:module rrarbiter #(
+common_cells/src/rrarbiter.sv:  input logic                         en_i,    // arbiter enable
+common_cells/src/rrarbiter.sv:      else $fatal (1,"vld must not be asserted when arbiter is disabled");
+common_cells/src/rrarbiter.sv:      else $fatal (1,"ack_o must not be asserted when arbiter is disabled");
+common_cells/src/rrarbiter.sv:endmodule : rrarbiter
+common_cells/README.md:| `rrarbiter`         | Round-robin arbiter for req/ack interface with look-ahead                    | active       |
+common_cells/README.md:| `stream_arbiter`    | Round-robin arbiter for ready/valid stream interface                         | active       |
+common_cells/src_files.yml:    - src/rrarbiter.sv
+common_cells/src_files.yml:    - src/stream_arbiter.sv
+load_unit.sv:            // abort the previous request - free the D$ arbiter
+load_unit.sv:                // the D$ arbiter will take care of presenting this to the memory only in case we
