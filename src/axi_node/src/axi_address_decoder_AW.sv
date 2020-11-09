@@ -116,16 +116,10 @@ module axi_address_decoder_AW
       begin
            for(i=0;i<N_INIT_PORT;i++)
            begin
-            // assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
-             if(i == 14)begin
-              assign match_region_int[j][i]  =  0;
-             end
-             else if (i == 15) begin
-                assign match_region_int[j][i]  =  (enable_region_i[j][14] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][14]) && (awaddr_i <= END_ADDR_i[j][14]) : 1'b0;
-             end
-             else begin
-               assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
-             end
+              if(i == 16)
+               assign match_region_int[j][i] = (match_region_int[j][4]) ? 1 : 0;
+              else
+                assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
            end
       end
       // transpose the match_region_int bidimensional array

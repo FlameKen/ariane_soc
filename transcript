@@ -12,7 +12,7 @@
 # //  18 U.S.C. Section 1905.
 # //
 # vsim "+permissive" -t 1ns -coverage -classdebug -do " log -r /*; run -all;" "+jtag_rbb_enable=0" -lib work "+MAX_CYCLES=10000000" "+UVM_TESTNAME=core_test" "+BASEDIR=tmp/riscv-tests/build/isa/" "+UVM_NO_RELNOTES" "+UVM_VERBOSITY=LOW" -gblso /autofs/home/wl222/hardware_security/riscv-tools/lib/libfesvr.so -sv_lib work-dpi/ariane_dpi ariane_tb_optimized "+permissive-off" "++../beta_software/main.riscv" "++" 
-# Start time: 13:23:29 on Nov 08,2020
+# Start time: 03:46:42 on Nov 09,2020
 # Loading /autofs/home/wl222/hardware_security/riscv-tools/lib/libfesvr.so
 # Loading sv_std.std
 # Loading mtiUvm.uvm_pkg
@@ -292,13 +292,7 @@
 # start in ariane_tb
 # 
 # [TRACER] Output filename is: trace_hart_0000.log
-# test = 00aabbcc
-# test = 00aabbcc
-# test = 00aabbcc
-# cycle :               948129 test :                                                     948129 
-# 
-# UVM_ERROR tb/ariane_tb.sv(97) @ 18962670: reporter [Core Test] *** FAILED *** (tohost = 1)
-# ** Note: $finish    : tb/ariane_tb.sv(102)
-#    Time: 18962670 ns  Iteration: 3  Instance: /ariane_tb
-# End time: 13:48:30 on Nov 08,2020, Elapsed time: 0:25:01
+# Break key hit
+# Simulation stop requested.
+# End time: 04:01:36 on Nov 09,2020, Elapsed time: 0:14:54
 # Errors: 0, Warnings: 0
