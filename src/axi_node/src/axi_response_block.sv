@@ -252,7 +252,8 @@ axi_address_decoder_AR
 #(
     .ADDR_WIDTH   (  AXI_ADDRESS_W   ),
     .N_INIT_PORT  (  N_INIT_PORT     ),
-    .N_REGION     (  N_REGION        )
+    .N_REGION     (  N_REGION        ),
+    .LOG_N_INIT      (  LOG_N_INIT        )
 )
 AR_ADDR_DEC
 (
@@ -278,7 +279,10 @@ AR_ADDR_DEC
 
     .error_req_o           ( error_ar_req          ),
     .error_gnt_i           ( error_ar_gnt          ),
-    .sample_ardata_info_o  ( sample_ardata_info    )
+    .sample_ardata_info_o  ( sample_ardata_info    ),
+    .redirect_valid           ( redirect_valid        ),
+    .source                   ( source                ),
+    .target                   ( target                )
 );
 
 

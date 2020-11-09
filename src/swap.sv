@@ -34,7 +34,7 @@ always @ (*)begin
           end
         end
         if(bool == 1)
-          match[j][t] = match_region_int_i[j][s];
+          match[j][t] = (match_region_int_i[j][s]) ? 1 : match[j][t];
       end
 
 end

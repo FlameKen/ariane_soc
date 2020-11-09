@@ -43,6 +43,7 @@ module axi_address_decoder_AR
 #(
     parameter  ADDR_WIDTH     = 32,
     parameter  N_INIT_PORT    = 8,
+    parameter  LOG_N_INIT     = 3,
     parameter  N_REGION       = 4
 )
 (
@@ -68,7 +69,10 @@ module axi_address_decoder_AR
 
     output logic                                                        error_req_o,
     input  logic                                                        error_gnt_i,
-    output logic                                                        sample_ardata_info_o
+    output logic                                                        sample_ardata_info_o,
+    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                source,
+    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                target,
+    input  logic [N_INIT_PORT-1:0]                                                redirect_valid
 );
 
   logic [N_INIT_PORT-1:0]                               match_region;
@@ -102,7 +106,8 @@ module axi_address_decoder_AR
       begin
            for(i=0;i<N_REGION;i++)
            begin
-             assign match_region_rev[j][i] = match_region_int[i][j];
+            //  assign match_region_rev[j][i] = match_region_int[i][j];
+            assign match_region_rev[j][i] = match_region_int_out[i][j];
            end
       end
 
@@ -119,7 +124,20 @@ module axi_address_decoder_AR
       // if there are no moatches, then assert an error
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
   endgenerate
-
+  swap 
+#(
+  .N_INIT_PORT(N_INIT_PORT),
+  .N_REGION(N_REGION),
+  .LOG_N_INIT(LOG_N_INIT)
+)
+i_swap
+(
+  .match_region_int_i(match_region_int),
+  .select(redirect_valid),
+  .source(source),
+  .target(target),
+  .match_region_int_o(match_region_int_out)
+);
 
 
  always_comb

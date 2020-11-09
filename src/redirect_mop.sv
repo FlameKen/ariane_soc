@@ -20,33 +20,33 @@ logic [N_TARG_PORT-1:0][1:0]                                                    
 always @(posedge clk) begin
   for (ii=0; ii<N_TARG_PORT; ii=ii+1) begin
     if(rst_n == 1'b0)begin
-       redirect_start[ii] <= 0 ;
-       target[ii]         <= 0 ;
-       source[ii]         <= 0;
-       redirect_valid[ii] <= 0;
+       redirect_start[ii] = 0 ;
+       target[ii]         = 0 ;
+       source[ii]         = 0;
+       redirect_valid[ii] = 0;
     end
     else begin
       if(wdata_i[ii] == ariane_soc::ERROR_REDIRECT && wvalid_i[ii] == 1)begin
-         redirect_start[ii] <= 1;
-         source[ii]         <= 1;
-         redirect_valid[ii] <= 0;
+         redirect_start[ii] = 1;
+         source[ii]         = 1;
+         redirect_valid[ii] = 0;
       end
       else if (redirect_start[ii] == 1 && wvalid_i[ii] == 1) begin
-        //  target[ii] <= 1;
+        //  target[ii] = 1;
          target[ii] = wdata_i[ii][63:32];
-         redirect_start[ii] <= 0 ;
-         redirect_valid[ii] <= 1;
+         redirect_start[ii] = 0 ;
+         redirect_valid[ii] = 1;
       end
       
       else if(wdata_i[ii] == ariane_soc::ERROR_REDIRECT_STOP)begin
-         redirect_valid[ii] <= 0;
-         redirect_start[ii] <= 0 ;
+         redirect_valid[ii] = 0;
+         redirect_start[ii] = 0 ;
       end
       else begin
-         target[ii] <= target[ii];
-         source[ii] <= source[ii];
-         redirect_valid[ii] <= redirect_valid[ii];
-         redirect_start[ii] <= redirect_start[ii];
+         target[ii] = target[ii];
+         source[ii] = source[ii];
+         redirect_valid[ii] = redirect_valid[ii];
+         redirect_start[ii] = redirect_start[ii];
       end
     end
   end
