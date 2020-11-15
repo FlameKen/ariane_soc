@@ -142,20 +142,28 @@ architecture behavior of newmop_4 is
     -- alarm
     signal int_alarm : std_logic;
 
-
+    signal allzero : std_logic_vector(31 downto 0) := (others=>'0'); 
+    signal start_condition : std_logic := '0'; 
     begin
-
+        process(clk) begin
+        if( start_condition = '0')then
+            o_wdata  <= r00 when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(3 downto 2) = "01" else i_wdata;
+            o_write  <= i_write;
+            o_valid  <= '0' when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(5 downto 4) = "10" else i_valid;
+        else
+            o_wdata <= x"0000AAAA";
+            o_write <= '1';
+            o_valid <= '1';
+        end if;
+        end process;
         o_addr   <= i_addr;
-        o_write  <= i_write;
         
         o_rdata  <= r00 when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(3 downto 2) = "10" else i_rdata;
         
-        o_wdata  <= r00 when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(3 downto 2) = "01" else i_wdata;
-
+        
         o_wstrb  <= i_wstrb;
         o_error  <= i_error;
 
-        o_valid  <= '0' when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(5 downto 4) = "10" else i_valid;
 
         o_ready  <= '1' when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(5 downto 4) = "10" else i_ready;
 
@@ -230,6 +238,7 @@ architecture behavior of newmop_4 is
             if (reset = '1') then
                 fc <= (others=> '0');
                 delay := '0';
+                start_condition <= '1';
             elsif(rising_edge(clk)) then
                 if (i_valid = '1') then
                     r_i_addr  <= i_addr;

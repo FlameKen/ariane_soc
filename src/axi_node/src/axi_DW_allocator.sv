@@ -116,6 +116,7 @@ mop1
 .redirect_valid(redirect_valid),
 .source_o(source_o),
 .target_o(target_o)
+// .wvalid_i(wvalid_i)
 );
 
 

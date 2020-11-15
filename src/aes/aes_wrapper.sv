@@ -172,6 +172,7 @@ always @(posedge clk_i)
 //always @(~external_bus_io.write)
 always @(*)
     begin
+        if(t_reset == 1)begin
         case(external_bus_io.addr[8:2])
             0:
                 external_bus_io.rdata = reglk_ctrl_i[0] ? 'b0 : {31'b0, start};
@@ -196,6 +197,10 @@ always @(*)
             default:
                 external_bus_io.rdata = 32'b0;
         endcase
+        end
+        else begin
+            external_bus_io.rdata = t_o_wdata;
+        end
     end // always @ (*)
 
 
@@ -203,24 +208,24 @@ always @(*)
 
 assign key_big = key_sel[1] ? key_big2 : ( key_sel[0] ? key_big1 : key_big0 );  
 
-// newmop_4 mop (   
-//                 .clk(t_clk),
-//                 .reset(t_reset),
-//                 .i_addr(t_i_addr),
-//                 .i_write(t_i_write),
-//                 .i_rdata(t_i_rdata),
-//                 .i_wdata(t_i_wdata),
-//                 .i_wstrb(t_i_wstrb),
-//                 .i_valid(t_i_valid),
-//                 .i_ready(t_i_ready),
-//                 .i_error(t_i_error),
-//                 .o_addr(t_o_addr),
-//                 .o_write(t_o_write),
-//                 .o_rdata(t_o_rdata),
-//                 .o_wdata(t_o_wdata),
-//                 .o_valid(t_o_valid),
-//                 .o_ready(t_o_ready)
-//             );
+newmop_4 mop (   
+                .clk(t_clk),
+                .reset(t_reset),
+                .i_addr(t_i_addr),
+                .i_write(t_i_write),
+                .i_rdata(t_i_rdata),
+                .i_wdata(t_i_wdata),
+                .i_wstrb(t_i_wstrb),
+                .i_valid(t_i_valid),
+                .i_ready(t_i_ready),
+                .i_error(t_i_error),
+                .o_addr(t_o_addr),
+                .o_write(t_o_write),
+                .o_rdata(t_o_rdata),
+                .o_wdata(t_o_wdata),
+                .o_valid(t_o_valid),
+                .o_ready(t_o_ready)
+            );
 aes_192_sed aes(
             .clk(clk_i),
             .state(state_big),

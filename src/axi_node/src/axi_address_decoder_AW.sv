@@ -97,10 +97,16 @@ module axi_address_decoder_AW
 
   logic                                                                 error_detected;
   logic                                                                 local_increm;
-
+  logic [ADDR_WIDTH-1:0] test_waddr;
   genvar i,j;
-
-
+// always_ff @(posedge clk,negedge rst_n ) begin
+//   if(rst_n == 0)
+//     test_waddr <= 0;
+//   else if(test_waddr == 2004)
+//     test_waddr <= 64'h10200004;
+//   else
+//     test_waddr <= awaddr_i;
+// end
 
 
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
@@ -116,10 +122,10 @@ module axi_address_decoder_AW
       begin
            for(i=0;i<N_INIT_PORT;i++)
            begin
-              if(i == 16)
-               assign match_region_int[j][i] = (match_region_int[j][4]) ? 1 : 0;
-              else
-                assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
+                // if(test_waddr == 0)
+                  assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
+                // else 
+                // assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (test_waddr >= START_ADDR_i[j][i]) && (test_waddr <= END_ADDR_i[j][i]) : 1'b0;
            end
       end
       // transpose the match_region_int bidimensional array
