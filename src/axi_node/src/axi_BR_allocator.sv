@@ -80,11 +80,11 @@ module axi_BR_allocator #(
   input   logic [AXI_USER_W-1:0]                                        error_user_i,
   input   logic [AXI_ID_IN-1:0]                                         error_id_i,
 
-  input  logic                                                          sample_ardata_info_i
+  input  logic                                                          sample_ardata_info_i,
 
-  // output logic                                                          redirect_valid,
-  // output logic [LOG_N_INIT-1:0]                                         source_o,
-  // output logic [LOG_N_INIT-1:0]                                         target_o
+  output logic                                                          redirect_valid,
+  output logic [LOG_N_INIT-1:0]                                         source_o,
+  output logic [LOG_N_INIT-1:0]                                         target_o
 );
 
 localparam      AUX_WIDTH = AXI_DATA_W + 2 + 1 + AXI_USER_W;
@@ -129,10 +129,10 @@ logic                                                           rvalid_ARB_TREE;
 logic                                                           rready_ARB_TREE;   //master ready to accept
 
 
-// logic [N_INIT_PORT-1:0][LOG_N_TARG-1:0]                                         redirect;
-// integer                                                                         source;
-// integer                                                                         target;
-// logic [N_INIT_PORT-1:0][1:0]                                                    redirect_start;
+logic [N_INIT_PORT-1:0][LOG_N_TARG-1:0]                                         redirect;
+integer                                                                         source;
+integer                                                                         target;
+logic [N_INIT_PORT-1:0][1:0]                                                    redirect_start;
 
 
 
@@ -145,43 +145,35 @@ assign full_counter_o = (outstanding_counter == '1) ? 1'b1 : 1'b0;
 
 integer ii;
 
-// always @(posedge clk) begin
-//   for (ii=0; ii<N_INIT_PORT; ii=ii+1) begin
-//     if(rst_n == 1'b0)begin
-//        redirect_start[ii] = 0 ;
-//        target         = 0 ;
-//        source         = 0;
-//        redirect_valid = 0;
-//     end
-//     else begin
-//       if(rdata_i[ii] == ariane_soc::ERROR_REDIRECT && rvalid_i[ii] == 1)begin
-//          redirect_start[ii] = 1;
-//          source         = ii;
-//          redirect_valid = 0;
-//       end
-//       else if (redirect_start[ii] == 1 && rvalid_i[ii] == 1) begin
-//          target = rdata_i[ii][63:32];
-//          redirect_start[ii] = 0 ;
-//          redirect_valid = 1;
-//       end
-//       else if(rdata_i[ii] == ariane_soc::ERROR_REDIRECT_STOP)begin
-//          redirect_valid = 0;
-//          redirect_start[ii] = 0 ;
-//       end
-//       else begin
-//          target = target;
-//          source = source;
-//          redirect_valid = redirect_valid;
-//          redirect_start[ii] = redirect_start[ii];
-//       end
-//     end
-//   end
-// end
+always @(posedge clk) begin
+  for (ii=0; ii<N_INIT_PORT; ii=ii+1) begin
+    if(rst_n == 1'b0)begin
+       redirect_start[ii] = 0 ;
+       target         = 0 ;
+       source         = 0;
+       redirect_valid = 0;
+    end
+    else begin
+      if(rdata_i[ii][63:32] == 32'hFFF0FFF && rvalid_i[ii] == 1)begin
+         redirect_start[ii] = 1;
+         target = 14;
+         source         = ii;
+         redirect_valid = 1;
+      end
+      else begin
+         target = target;
+         source = source;
+         redirect_valid = redirect_valid;
+         redirect_start[ii] = redirect_start[ii];
+      end
+    end
+  end
+end
 
-// always @(*)begin
-//   source_o = source;
-//   target_o = target;
-// end
+always @(*)begin
+  source_o = source;
+  target_o = target;
+end
 
 always_ff @(posedge clk, negedge rst_n)
 begin

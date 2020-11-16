@@ -860,6 +860,7 @@ logic [7:0] TEST_SIGNAL;
     ) i_aes2_wrapper (
         .clk_i              ( clk_i                  ),
         .rst_ni             ( rst_ni                 ),
+        .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES2+8-1:8*ariane_soc::AES2] ),
         .external_bus_io    ( reg_bus_aes2            )
     );
 ///////////////////////////////////////////////////////////////////////////////////////

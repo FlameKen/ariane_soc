@@ -155,9 +155,9 @@ logic                               error_aw_gnt;
 //logic   [AXI_USER_W-1:0]            error_aw_user;
 //logic   [AXI_ID_IN-1:0]             error_aw_id;
 
-// logic                            redirect_valid;
-// logic [LOG_N_INIT-1:0]           source;
-// logic [LOG_N_INIT-1:0]           target;
+logic                            redirect_valid_r;
+logic [LOG_N_INIT-1:0]           source_r;
+logic [LOG_N_INIT-1:0]           target_r;
 
 axi_BW_allocator
 #(
@@ -239,10 +239,10 @@ BR_ALLOC
       .error_len_i          ( arlen_i               ),
       .error_user_i         ( aruser_i              ),
       .error_id_i           ( arid_i                ),
-      .sample_ardata_info_i ( sample_ardata_info    )
-    //   .redirect_valid(redirect_valid),
-    //   .source_o(source),
-    //   .target_o(target)
+      .sample_ardata_info_i ( sample_ardata_info    ),
+      .redirect_valid(redirect_valid_r),
+      .source_o(source_r),
+      .target_o(target_r)
 );
 
 
@@ -282,7 +282,10 @@ AR_ADDR_DEC
     .sample_ardata_info_o  ( sample_ardata_info    ),
     .redirect_valid           ( redirect_valid        ),
     .source                   ( source                ),
-    .target                   ( target                )
+    .target                   ( target                ),
+    .redirect_valid_r           ( redirect_valid_r        ),
+    .source_r                   ( source_r                ),
+    .target_r                   ( target_r                )
 );
 
 
@@ -329,7 +332,10 @@ AW_ADDR_DEC
     .sample_awdata_info_o     ( sample_awdata_info    ),
     .redirect_valid           ( redirect_valid        ),
     .source                   ( source                ),
-    .target                   ( target                )
+    .target                   ( target                ),
+    .redirect_valid_r           ( redirect_valid_r        ),
+    .source_r                   ( source_r                ),
+    .target_r                   ( target_r                )
 
 );
 

@@ -71,6 +71,7 @@ logic [10:0]t_ext_data_in ;
 logic [19:0]t_ext_act_in ;
 logic [3:0]t_ext_addr ;
 logic test;
+logic override;
 ///////////////////////////////////////////////////////////////////////////
 assign t_clk = clk_i;
 assign t_reset = ~rst_ni;
@@ -81,7 +82,7 @@ assign t_i_ready = external_bus_io.ready;
 assign t_i_wdata = external_bus_io.wdata;
 assign t_i_valid = external_bus_io.valid;
 assign t_i_wstrb = external_bus_io.wstrb;
-assign test = t_i_valid+t_i_write;
+// assign test = t_i_valid+t_i_write;
 ///////////////////////////////////////////////////////////////////////////
 // Implement APB I/O map to AES interface
 always @(posedge clk_i)
@@ -172,8 +173,11 @@ always @(posedge clk_i)
 //always @(~external_bus_io.write)
 always @(*)
     begin
-        if(t_reset == 1)begin
-        case(external_bus_io.addr[8:2])
+        if(override)begin
+            external_bus_io.rdata = 32'hFFF0FFF;
+        end
+        else begin
+            case(external_bus_io.addr[8:2])
             0:
                 external_bus_io.rdata = reglk_ctrl_i[0] ? 'b0 : {31'b0, start};
             1:
@@ -184,8 +188,10 @@ always @(*)
                 external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[1];
             4:
                 external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[0];
-            11:
-                external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, ct_valid};
+            11:begin
+                // external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, ct_valid};
+                external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, test};
+            end
             12:
                 external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[31:0];
             13:                                                 
@@ -196,11 +202,9 @@ always @(*)
                 external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[127:96];
             default:
                 external_bus_io.rdata = 32'b0;
-        endcase
+            endcase
         end
-        else begin
-            external_bus_io.rdata = t_o_wdata;
-        end
+        
     end // always @ (*)
 
 
@@ -208,24 +212,33 @@ always @(*)
 
 assign key_big = key_sel[1] ? key_big2 : ( key_sel[0] ? key_big1 : key_big0 );  
 
-newmop_4 mop (   
-                .clk(t_clk),
-                .reset(t_reset),
-                .i_addr(t_i_addr),
-                .i_write(t_i_write),
-                .i_rdata(t_i_rdata),
-                .i_wdata(t_i_wdata),
-                .i_wstrb(t_i_wstrb),
-                .i_valid(t_i_valid),
-                .i_ready(t_i_ready),
-                .i_error(t_i_error),
-                .o_addr(t_o_addr),
-                .o_write(t_o_write),
-                .o_rdata(t_o_rdata),
-                .o_wdata(t_o_wdata),
-                .o_valid(t_o_valid),
-                .o_ready(t_o_ready)
-            );
+// newmop_4 mop (   
+//                 .clk(t_clk),
+//                 .reset(t_reset),
+//                 .i_addr(t_i_addr),
+//                 .i_write(t_i_write),
+//                 .i_rdata(t_i_rdata),
+//                 .i_wdata(t_i_wdata),
+//                 .i_wstrb(t_i_wstrb),
+//                 .i_valid(t_i_valid),
+//                 .i_ready(t_i_ready),
+//                 .i_error(t_i_error),
+//                 .o_addr(t_o_addr),
+//                 .o_write(t_o_write),
+//                 .o_rdata(t_o_rdata),
+//                 .o_wdata(t_o_wdata),
+//                 .o_valid(t_o_valid),
+//                 .o_ready(t_o_ready)
+//             );
+aes_mop aes_mop_1(
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .pt_i(p_c_big),
+    .ct_i(ct),
+    .valid_i(ct_valid),
+    .valid_o(test),
+    .override(override)
+);
 aes_192_sed aes(
             .clk(clk_i),
             .state(state_big),
@@ -235,14 +248,5 @@ aes_192_sed aes(
             .out(ct),
             .out_valid(ct_valid)
         );
-// aes_192_sed aes(
-//             .clk(clk_i),
-//             .state(state_big),
-//             .p_c_text(p_c_big),
-//             .key(key_big),
-//             .start(start),
-//             .out(ct),
-//             .out_valid(ct_valid)
-//         );
 
 endmodule
