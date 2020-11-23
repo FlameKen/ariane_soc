@@ -450,7 +450,7 @@ module ariane_testharness #(
     generate
         for (i=0; i<NB_SLAVE; i++) begin
             for (j=0; j<ariane_soc::NB_PERIPHERALS; j++) begin
-                assign access_ctrl[i][j] = access_ctrl_reg[i][4*j +: 4];
+                assign access_ctrl[i][j] = access_ctrl_reg[i][4*j +: 4]; // [4j+4 -1:4j]
             end
         end
     endgenerate

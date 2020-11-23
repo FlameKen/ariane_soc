@@ -102,14 +102,6 @@ module axi_address_decoder_AW
   logic                                                                 local_increm;
   logic [ADDR_WIDTH-1:0] test_waddr;
   genvar i,j;
-// always_ff @(posedge clk,negedge rst_n ) begin
-//   if(rst_n == 0)
-//     test_waddr <= 0;
-//   else if(test_waddr == 2004)
-//     test_waddr <= 64'h10200004;
-//   else
-//     test_waddr <= awaddr_i;
-// end
 
 
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
@@ -121,23 +113,20 @@ module axi_address_decoder_AW
   generate
 
       // First calculate for each region where what slave ist matching
-      for(j=0;j<N_REGION;j++)
-      begin
-           for(i=0;i<N_INIT_PORT;i++)
-           begin
-                // if(test_waddr == 0)
-                  assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
-                // else 
-                // assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (test_waddr >= START_ADDR_i[j][i]) && (test_waddr <= END_ADDR_i[j][i]) : 1'b0;
-           end
-      end
+      // for(j=0;j<N_REGION;j++)
+      // begin
+      //      for(i=0;i<N_INIT_PORT;i++)
+      //      begin
+      //             assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
+      //      end
+      // end
       // transpose the match_region_int bidimensional array
       for(j=0;j<N_INIT_PORT;j++)
       begin
            for(i=0;i<N_REGION;i++)
            begin
-             assign match_region_rev[j][i] = match_region_int_out[i][j];
-            // assign match_region_rev[j][i] = match_region_int[i][j];
+            //  assign match_region_rev[j][i] = match_region_int_out[i][j];
+            assign match_region_rev[j][i] = match_region_int[i][j];
            end
       end
 
@@ -155,21 +144,40 @@ module axi_address_decoder_AW
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
 
   endgenerate
-
-  swap_r 
+  swap_n
 #(
+  .ADDR_WIDTH(ADDR_WIDTH),
   .N_INIT_PORT(N_INIT_PORT),
   .N_REGION(N_REGION),
   .LOG_N_INIT(LOG_N_INIT)
 )
-i_swap_r
+i_swap_n
 (
-  .match_region_int_i(match_region_int),
+  .clk(clk),
+  .rst_n(rst_n),
+  .START_ADDR_i(START_ADDR_i),
+  .END_ADDR_i(END_ADDR_i),
+  .enable_region_i(enable_region_i),
+  .awaddr_i(awaddr_i),
   .select(redirect_valid_r),
   .source(source_r),
   .target(target_r),
-  .match_region_int_o(match_region_int_out)
+  .match_region_int_o(match_region_int)
 );
+//   swap_r 
+// #(
+//   .N_INIT_PORT(N_INIT_PORT),
+//   .N_REGION(N_REGION),
+//   .LOG_N_INIT(LOG_N_INIT)
+// )
+// i_swap_r
+// (
+//   .match_region_int_i(match_region_int),
+//   .select(redirect_valid_r),
+//   .source(source_r),
+//   .target(target_r),
+//   .match_region_int_o(match_region_int_out)
+// );
 //   swap 
 // #(
 //   .N_INIT_PORT(N_INIT_PORT),

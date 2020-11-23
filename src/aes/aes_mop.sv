@@ -18,6 +18,7 @@ module aes_mop(
   logic     alarm;
   logic    [127:0]         test;
   assign  test = ct_i;
+//   assign  test = pt_i;
 always@(*)begin
     if(test == ct_i)begin
         valid_o = 0;

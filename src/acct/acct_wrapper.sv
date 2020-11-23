@@ -37,28 +37,37 @@ assign external_bus_io.error = 1'b0;
 ///////////////////////////////////////////////////////////////////////////
 // Implement APB I/O map to PKT interface
 // Write side
+logic test;
 integer j;
 always @(posedge clk_i)
     begin
         if(~rst_ni)
             begin
+                test <= 0;
               for (j=0; j < AcCt_MEM_SIZE; j=j+1) begin
-                acct_mem[j] <= 32'h88888888; // Default full access only for machine mode
+                // acct_mem[j] <= 32'h88888888; // Default full access only for machine mode
+                acct_mem[j] <= 32'hFFFFFFFF; // Default full access only for machine mode
               end
             end
-        else if(external_bus_io.write)
+        else if(external_bus_io.write)begin
+            if(test == 1)
+                $finish();
+        
             case(external_bus_io.addr[9:2])
                 0:
                     acct_mem[00]  <= reglk_ctrl_i[5] ? acct_mem[00] : external_bus_io.wdata;
                 1:    
-                begin                                            
-                    acct_mem[01]  <= acct_mem[01]; 
-                    // acct_mem[01]  <= reglk_ctrl_i[5] ? acct_mem[01] : external_bus_io.wdata; 
-                    // $finish();
-                end
-                2:                                                
+                    acct_mem[01]  <= reglk_ctrl_i[5] ? acct_mem[01] : external_bus_io.wdata; 
+                2:                      
+                begin
                     // acct_mem[02]  <= reglk_ctrl_i[5] ? acct_mem[02] : external_bus_io.wdata;
                     acct_mem[02]  <= acct_mem[02]; 
+                    // $display("2 acct : %d, wdata :%d",acct_mem[02],external_bus_io.wdata);
+                    // acct_mem[02]  <= external_bus_io.wdata; 
+                    // $display("2 acct : %d, wdata :%d",acct_mem[02],external_bus_io.wdata);
+                    // $display("reglk %d",reglk_ctrl_i[5]);
+                    // test <= 1;
+                end                          
                 3:                                                
                     acct_mem[03]  <= reglk_ctrl_i[3] ? acct_mem[03] : external_bus_io.wdata;
                 4:                                                
@@ -80,6 +89,7 @@ always @(posedge clk_i)
                 default:
                     ;
             endcase
+        end
     end // always @ (posedge wb_clk_i)
 
 //// Read side

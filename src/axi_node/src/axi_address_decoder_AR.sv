@@ -96,21 +96,21 @@ module axi_address_decoder_AR
   generate
 
       // First calculate for each region where what slave ist matching
-      for(j=0;j<N_REGION;j++)
-      begin
-           for(i=0;i<N_INIT_PORT;i++)
-           begin
-              assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (araddr_i >= START_ADDR_i[j][i]) && (araddr_i <= END_ADDR_i[j][i]) : 1'b0;
-           end
-      end
+      // for(j=0;j<N_REGION;j++)
+      // begin
+      //      for(i=0;i<N_INIT_PORT;i++)
+      //      begin
+      //         assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (araddr_i >= START_ADDR_i[j][i]) && (araddr_i <= END_ADDR_i[j][i]) : 1'b0;
+      //      end
+      // end
 
       // transpose the match_region_int bidimensional array
       for(j=0;j<N_INIT_PORT;j++)
       begin
            for(i=0;i<N_REGION;i++)
            begin
-            //  assign match_region_rev[j][i] = match_region_int[i][j];
-            assign match_region_rev[j][i] = match_region_int_out[i][j];
+             assign match_region_rev[j][i] = match_region_int[i][j];
+            // assign match_region_rev[j][i] = match_region_int_out[i][j];
            end
       end
 
@@ -118,7 +118,7 @@ module axi_address_decoder_AR
       //Or reduction
       for(i=0;i<N_INIT_PORT;i++)
       begin
-        assign match_region[i]  =  | match_region_rev[i]; 
+        assign match_region[i]  =  | match_region_rev[i]; //把全部region or 起來 
         // ==> every bit or each other
       end
 
@@ -128,21 +128,40 @@ module axi_address_decoder_AR
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
   endgenerate
 
-
-  swap_r 
+  swap_n
 #(
+  .ADDR_WIDTH(ADDR_WIDTH),
   .N_INIT_PORT(N_INIT_PORT),
   .N_REGION(N_REGION),
   .LOG_N_INIT(LOG_N_INIT)
 )
-i_swap_r
+i_swap_n
 (
-  .match_region_int_i(match_region_int),
+  .clk(clk),
+  .rst_n(rst_n),
+  .START_ADDR_i(START_ADDR_i),
+  .END_ADDR_i(END_ADDR_i),
+  .enable_region_i(enable_region_i),
+  .awaddr_i(araddr_i),
   .select(redirect_valid_r),
   .source(source_r),
   .target(target_r),
-  .match_region_int_o(match_region_int_out)
+  .match_region_int_o(match_region_int)
 );
+//   swap_r 
+// #(
+//   .N_INIT_PORT(N_INIT_PORT),
+//   .N_REGION(N_REGION),
+//   .LOG_N_INIT(LOG_N_INIT)
+// )
+// i_swap_r
+// (
+//   .match_region_int_i(match_region_int),
+//   .select(redirect_valid_r),
+//   .source(source_r),
+//   .target(target_r),
+//   .match_region_int_o(match_region_int_out)
+// );
 
 //   swap 
 // #(
