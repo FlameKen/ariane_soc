@@ -70,10 +70,7 @@ module axi_address_decoder_AR
     output logic                                                        error_req_o,
     input  logic                                                        error_gnt_i,
     output logic                                                        sample_ardata_info_o,
-    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                source,
-    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                target,
-    input  logic [N_INIT_PORT-1:0]                                                redirect_valid,
-        input  logic [LOG_N_INIT-1:0]                                source_r,
+    input  logic [LOG_N_INIT-1:0]                                source_r,
     input  logic [LOG_N_INIT-1:0]                                target_r,
     input  logic                                                 redirect_valid_r
 );
@@ -148,35 +145,6 @@ i_swap_n
   .target(target_r),
   .match_region_int_o(match_region_int)
 );
-//   swap_r 
-// #(
-//   .N_INIT_PORT(N_INIT_PORT),
-//   .N_REGION(N_REGION),
-//   .LOG_N_INIT(LOG_N_INIT)
-// )
-// i_swap_r
-// (
-//   .match_region_int_i(match_region_int),
-//   .select(redirect_valid_r),
-//   .source(source_r),
-//   .target(target_r),
-//   .match_region_int_o(match_region_int_out)
-// );
-
-//   swap 
-// #(
-//   .N_INIT_PORT(N_INIT_PORT),
-//   .N_REGION(N_REGION),
-//   .LOG_N_INIT(LOG_N_INIT)
-// )
-// i_swap
-// (
-//   .match_region_int_i(match_region_int),
-//   .select(redirect_valid),
-//   .source(source),
-//   .target(target),
-//   .match_region_int_o(match_region_int_out)
-// );
 
 
  always_comb

@@ -121,6 +121,11 @@ module axi_response_block
    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                     source,
    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                     target,
 
+   input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
+   input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
+   input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
+   output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
+    
    // FROM CFG REGS
    input  logic [N_REGION-1:0][N_INIT_PORT-1:0][AXI_ADDRESS_W-1:0]   START_ADDR_i,
    input  logic [N_REGION-1:0][N_INIT_PORT-1:0][AXI_ADDRESS_W-1:0]   END_ADDR_i,
@@ -158,6 +163,8 @@ logic                               error_aw_gnt;
 logic                            redirect_valid_r;
 logic [LOG_N_INIT-1:0]           source_r;
 logic [LOG_N_INIT-1:0]           target_r;
+logic                            valid_r;
+assign valid_r = |valid_o[ariane_soc::NB_PERIPHERALS-1 :0];
 
 axi_BW_allocator
 #(
@@ -245,7 +252,11 @@ BR_ALLOC
       .target_o(target_r)
 );
 
-
+MoP_decoder
+(
+    .valid_i(valid_i),
+    .valid_o(valid_o)
+);
 
 
 axi_address_decoder_AR
@@ -253,7 +264,7 @@ axi_address_decoder_AR
     .ADDR_WIDTH   (  AXI_ADDRESS_W   ),
     .N_INIT_PORT  (  N_INIT_PORT     ),
     .N_REGION     (  N_REGION        ),
-    .LOG_N_INIT      (  LOG_N_INIT        )
+    .LOG_N_INIT   (  LOG_N_INIT        )
 )
 AR_ADDR_DEC
 (
@@ -280,12 +291,9 @@ AR_ADDR_DEC
     .error_req_o           ( error_ar_req          ),
     .error_gnt_i           ( error_ar_gnt          ),
     .sample_ardata_info_o  ( sample_ardata_info    ),
-    .redirect_valid           ( redirect_valid        ),
-    .source                   ( source                ),
-    .target                   ( target                ),
-    .redirect_valid_r           ( redirect_valid_r        ),
-    .source_r                   ( source_r                ),
-    .target_r                   ( target_r                )
+    .redirect_valid_r           ( valid_r        ),
+    .source_r                   ( MoP_request                ),
+    .target_r                   ( MoP_receive                )
 );
 
 
@@ -333,9 +341,12 @@ AW_ADDR_DEC
     .redirect_valid           ( redirect_valid        ),
     .source                   ( source                ),
     .target                   ( target                ),
-    .redirect_valid_r           ( redirect_valid_r        ),
-    .source_r                   ( source_r                ),
-    .target_r                   ( target_r                )
+    // .redirect_valid_r           ( redirect_valid_r        ),
+    // .source_r                   ( source_r                ),
+    // .target_r                   ( target_r                )
+    .redirect_valid_r           ( valid_r        ),
+    .source_r                   ( MoP_request                ),
+    .target_r                   ( MoP_receive                )
 
 );
 
@@ -367,4 +378,22 @@ DW_ADDR_DEC
 );
 
 
+endmodule
+module MoP_decoder(
+   input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
+   output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o
+);
+logic bool;
+    always@(*)begin
+        bool = 0;
+        for(integer i = 0 ; i <ariane_soc::NB_PERIPHERALS;i++ )begin
+            if(bool == 0 && valid_i[i] == 1)begin
+                valid_o[i] = 1;
+                bool = 1;
+            end
+            else begin
+                valid_o[i] = 0;
+            end
+        end
+    end
 endmodule

@@ -102,6 +102,7 @@ module axi_address_decoder_AW
   logic                                                                 local_increm;
   logic [ADDR_WIDTH-1:0] test_waddr;
   genvar i,j;
+  logic test;
 
 
   assign DEST_o      = match_region[N_INIT_PORT-1:0];
@@ -197,7 +198,10 @@ i_swap_n
 
   always_comb
   begin
-
+      // if(awaddr_i >=64'h9000 && awaddr_i < 64'h10000)
+      //   test = 1;
+      // else 
+      //   test = 0;
       if(grant_FIFO_DEST_i == 1'b1)
       begin
             if(awvalid_i)

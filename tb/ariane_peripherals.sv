@@ -18,6 +18,7 @@ module ariane_peripherals #(
     parameter bit InclUART     = 1,
     parameter bit InclSPI      = 0,
     parameter bit InclEthernet = 0,
+    parameter LOG_N_INIT = $clog2(ariane_soc::NB_PERIPHERALS),
     parameter bit InclGPIO     = 0
 ) (
     input  logic               clk_i           , // Clock
@@ -26,6 +27,7 @@ module ariane_peripherals #(
     AXI_BUS.in                 plic            ,
     AXI_BUS.in                 aes             , 
     AXI_BUS.in                 aes2            ,
+    AXI_BUS.in                 mop            ,
     AXI_BUS.in                 debug2          ,
     AXI_BUS.in                 test            , 
     AXI_BUS.in                 sha256          , 
@@ -64,11 +66,32 @@ module ariane_peripherals #(
     output logic               spi_mosi        ,
     input  logic               spi_miso        ,
     input  logic [191:0]       testCycle       ,
+    output logic [LOG_N_INIT-1:0]              MoP_request     ,
+    output logic [LOG_N_INIT-1:0]              MoP_receive     ,
+    output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
+    input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
     output logic               spi_ss
 );
 logic [7:0] TEST_SIGNAL;
+logic [LOG_N_INIT-1:0] request[ariane_soc::NB_PERIPHERALS-1 :0];
+logic [LOG_N_INIT-1:0] receive[ariane_soc::NB_PERIPHERALS-1 :0];
+logic [8*ariane_soc::NB_PERIPHERALS-1 :0]   reglk_ctrl; // Access control values
+logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl; // Access control values
+logic [7:0] instrut_value;
+genvar i;
+generate
+    for(i = 0 ; i < ariane_soc::NB_PERIPHERALS; i++)begin
+        if(i != 5 && i != 14 && i != 15 && i!= 16)begin
+            assign request[i] = 0;
+            assign receive[i] = 0;
+            // assign redirect_o[i] = 0;
+        end
+    end
+assign MoP_request = request.sum();
+assign MoP_receive = receive.sum();
+    
 
-    logic [8*ariane_soc::NB_PERIPHERALS-1 :0]   reglk_ctrl; // Access control values
+endgenerate
 
     // ---------------
     // 1. PLIC
@@ -285,10 +308,15 @@ logic [7:0] TEST_SIGNAL;
     );
 
     test_wrapper #(
+        .LOG_N_INIT(LOG_N_INIT)
     ) i_test_wrapper (
         .clk_i              ( clk_i             ),
         .rst_ni             ( rst_ni            ),
         .reglk_ctrl_o       ( TEST_SIGNAL ),
+        .request            (request[ariane_soc::TEST]),
+        .receive            (receive[ariane_soc::TEST]),
+        .valid_i            (valid_o[ariane_soc::TEST]),
+        .valid_o            (valid_i[ariane_soc::TEST]),
         .external_bus_io    ( reg_bus_test       )
     );
 
@@ -750,12 +778,19 @@ logic [7:0] TEST_SIGNAL;
     );
 
     aes_wrapper #(
+        .LOG_N_INIT(LOG_N_INIT)
     ) i_aes_wrapper (
         .clk_i              ( clk_i                  ),
         .rst_ni             ( rst_ni                 ),
         .key_in             ( aes_key_in             ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES+8-1:8*ariane_soc::AES] ),
         .testCycle          (testCycle),
+        .request            (request[ariane_soc::AES]),
+        .receive            (receive[ariane_soc::AES]),
+        .valid_i            (valid_o[ariane_soc::AES]),
+        .valid_o            (valid_i[ariane_soc::AES]),
+        .instrut_value      (instrut_value),
+        .load_ctrl          ( load_ctrl),
         .external_bus_io    ( reg_bus_aes            )
     );
     // ---------------
@@ -857,10 +892,17 @@ logic [7:0] TEST_SIGNAL;
     );
 
     aes2_wrapper #(
+        .LOG_N_INIT(LOG_N_INIT)
     ) i_aes2_wrapper (
         .clk_i              ( clk_i                  ),
         .rst_ni             ( rst_ni                 ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES2+8-1:8*ariane_soc::AES2] ),
+        .request            (request[ariane_soc::AES2]),
+        .receive            (receive[ariane_soc::AES2]),
+        .valid_i            (valid_o[ariane_soc::AES2]),
+        .valid_o            (valid_i[ariane_soc::AES2]),
+        .instrut_value      (instrut_value),
+        .load_ctrl          ( load_ctrl),
         .external_bus_io    ( reg_bus_aes2            )
     );
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1689,10 +1731,126 @@ logic [7:0] TEST_SIGNAL;
     );
 
     debug2_wrapper #(
+        .LOG_N_INIT(LOG_N_INIT)
     ) i_debug2_wrapper (
         .clk_i              ( clk_i             ),
         .rst_ni             ( rst_ni            ),
         .reglk_ctrl_i       ( TEST_SIGNAL ),
+        .request            (request[ariane_soc::Debug2]),
+        .receive            (receive[ariane_soc::Debug2]),
+        .valid_i            (valid_o[ariane_soc::Debug2]),
+        .valid_o            (valid_i[ariane_soc::Debug2]),
+        .instrut_value      (instrut_value),
+        .load_ctrl          (load_ctrl),
         .external_bus_io    ( reg_bus_debug2       )
+    );
+
+///////////////////////////////////////////
+REG_BUS #(
+        .ADDR_WIDTH ( 32 ),
+        .DATA_WIDTH ( 32 )
+    ) reg_bus_mop (clk_i);
+    
+    logic         mop_penable;
+    logic         mop_pwrite;
+    logic [31:0]  mop_paddr;
+    logic         mop_psel;
+    logic [31:0]  mop_pwdata;
+    logic [31:0]  mop_prdata;
+    logic         mop_pready;
+    logic         mop_pslverr;
+    axi2apb_64_32 #(
+        .AXI4_ADDRESS_WIDTH ( AxiAddrWidth  ),
+        .AXI4_RDATA_WIDTH   ( AxiDataWidth  ),
+        .AXI4_WDATA_WIDTH   ( AxiDataWidth  ),
+        .AXI4_ID_WIDTH      ( AxiIdWidth    ),
+        .AXI4_USER_WIDTH    ( AxiUserWidth  ),
+        .BUFF_DEPTH_SLAVE   ( 2             ),
+        .APB_ADDR_WIDTH     ( 32            )
+    ) i_axi2apb_64_32_mop (
+        .ACLK      ( clk_i          ),
+        .ARESETn   ( rst_ni         ),
+        .test_en_i ( 1'b0           ),
+        .AWID_i    ( mop.aw_id     ),
+        .AWADDR_i  ( mop.aw_addr   ),
+        .AWLEN_i   ( mop.aw_len    ),
+        .AWSIZE_i  ( mop.aw_size   ),
+        .AWBURST_i ( mop.aw_burst  ),
+        .AWLOCK_i  ( mop.aw_lock   ),
+        .AWCACHE_i ( mop.aw_cache  ),
+        .AWPROT_i  ( mop.aw_prot   ),
+        .AWREGION_i( mop.aw_region ),
+        .AWUSER_i  ( mop.aw_user   ),
+        .AWQOS_i   ( mop.aw_qos    ),
+        .AWVALID_i ( mop.aw_valid  ),
+        .AWREADY_o ( mop.aw_ready  ),
+        .WDATA_i   ( mop.w_data    ),
+        .WSTRB_i   ( mop.w_strb    ),
+        .WLAST_i   ( mop.w_last    ),
+        .WUSER_i   ( mop.w_user    ),
+        .WVALID_i  ( mop.w_valid   ),
+        .WREADY_o  ( mop.w_ready   ),
+        .BID_o     ( mop.b_id      ),
+        .BRESP_o   ( mop.b_resp    ),
+        .BVALID_o  ( mop.b_valid   ),
+        .BUSER_o   ( mop.b_user    ),
+        .BREADY_i  ( mop.b_ready   ),
+        .ARID_i    ( mop.ar_id     ),
+        .ARADDR_i  ( mop.ar_addr   ),
+        .ARLEN_i   ( mop.ar_len    ),
+        .ARSIZE_i  ( mop.ar_size   ),
+        .ARBURST_i ( mop.ar_burst  ),
+        .ARLOCK_i  ( mop.ar_lock   ),
+        .ARCACHE_i ( mop.ar_cache  ),
+        .ARPROT_i  ( mop.ar_prot   ),
+        .ARREGION_i( mop.ar_region ),
+        .ARUSER_i  ( mop.ar_user   ),
+        .ARQOS_i   ( mop.ar_qos    ),
+        .ARVALID_i ( mop.ar_valid  ),
+        .ARREADY_o ( mop.ar_ready  ),
+        .RID_o     ( mop.r_id      ),
+        .RDATA_o   ( mop.r_data    ),
+        .RRESP_o   ( mop.r_resp    ),
+        .RLAST_o   ( mop.r_last    ),
+        .RUSER_o   ( mop.r_user    ),
+        .RVALID_o  ( mop.r_valid   ),
+        .RREADY_i  ( mop.r_ready   ),
+        .PENABLE   ( mop_penable   ),
+        .PWRITE    ( mop_pwrite    ),
+        .PADDR     ( mop_paddr     ),
+        .PSEL      ( mop_psel      ),
+        .PWDATA    ( mop_pwdata    ),
+        .PRDATA    ( mop_prdata    ),
+        .PREADY    ( mop_pready    ),
+        .PSLVERR   ( mop_pslverr   )
+    );
+
+    apb_to_reg i_apb_to_reg_mop (
+        .clk_i     ( clk_i        ),
+        .rst_ni    ( rst_ni       ),
+        .penable_i ( mop_penable ),
+        .pwrite_i  ( mop_pwrite  ),
+        .paddr_i   ( mop_paddr   ),
+        .psel_i    ( mop_psel    ),
+        .pwdata_i  ( mop_pwdata  ),
+        .prdata_o  ( mop_prdata  ),
+        .pready_o  ( mop_pready  ),
+        .pslverr_o ( mop_pslverr ),
+        .reg_o     ( reg_bus_mop )
+    );
+
+    mop_wrapper #(
+        .LOG_N_INIT(LOG_N_INIT)
+    ) i_mop_wrapper (
+        .clk_i              ( clk_i             ),
+        .rst_ni             ( rst_ni            ),
+        .reglk_ctrl_i       ( TEST_SIGNAL ),
+        .request            (request[ariane_soc::MOP]),
+        .receive            (receive[ariane_soc::MOP]),
+        .valid_i            (valid_o[ariane_soc::MOP]),
+        .valid_o            (valid_i[ariane_soc::MOP]),
+        .instrut_value      (instrut_value),
+        .load_ctrl          (load_ctrl),
+        .external_bus_io    ( reg_bus_mop       )
     );
 endmodule

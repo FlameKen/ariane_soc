@@ -208,7 +208,10 @@ module axi_node #(
        output logic                                                          PSLVERR_o,
     `endif
 `endif
-
+   input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
+   input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
+   input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
+   output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
    //Initial Memory map
    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_START_ADDR_i,
    input  logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]         cfg_END_ADDR_i,
@@ -254,13 +257,14 @@ logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      START_ADDR;
 logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      END_ADDR;
 logic [N_REGION-1:0][N_MASTER_PORT-1:0]                         valid_rule;
 logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                     connectivity_map;
-
+logic [ariane_soc::NB_PERIPHERALS-1 :0]        s_valid_o[N_SLAVE_PORT-1:0];
 logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                                                      redirect_valid;
 logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0]                                                      redirect_valid_int;
 logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0] [LOG_N_INIT-1:0]                                     source_int;
 logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0] [LOG_N_INIT-1:0]                                     source;
 logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0] [LOG_N_INIT-1:0]                                     target_int;
 logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0] [LOG_N_INIT-1:0]                                     target;
+assign valid_o = s_valid_o.sum();
 generate
 
 // 2D REQ AND GRANT MATRIX REVERSING (TRANSPOSE)
@@ -492,6 +496,11 @@ RESP_BLOCK
    .redirect_valid(redirect_valid[i]),
    .source(source[i]),
    .target(target[i]),
+
+   .MoP_request(MoP_request),
+   .MoP_receive(MoP_receive),
+   .valid_i(valid_i),
+   .valid_o(s_valid_o[i]), 
 
    // FROM CFG REGS
    .START_ADDR_i       ( START_ADDR               ),

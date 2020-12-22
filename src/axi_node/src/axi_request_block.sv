@@ -323,10 +323,10 @@ DW_ALLOC
   // PUSH Interface to DW allocator
   .push_ID_i        (  push_ID  ),
   .ID_i             (  ID       ),  // {BIN_ID(  ),  OH_ID};
-  .grant_FIFO_ID_o  (  grant_FIFO_ID ),
-  .redirect_valid(redirect_valid),
-  .source_o(source),
-  .target_o(target)
+  .grant_FIFO_ID_o  (  grant_FIFO_ID )
+  // .redirect_valid(redirect_valid),
+  // .source_o(source),
+  // .target_o(target)
 );
 
 

@@ -92,17 +92,30 @@
 
 
 module aes2_wrapper #(
+    parameter LOG_N_INIT = 3,
     parameter int ADDR_WIDTH         = 32,   // width of external address bus
     parameter int DATA_WIDTH         = 32   // width of external data bus
 )(
            clk_i,
            rst_ni,
            reglk_ctrl_i,
+           request,
+           receive,
+           valid_i,
+           valid_o,
+           instrut_value,
+           load_ctrl,
            external_bus_io
        );
 
     input  logic                   clk_i;
     input  logic                   rst_ni;
+    output logic [LOG_N_INIT-1:0]   request;
+    output logic [LOG_N_INIT-1:0]   receive;
+    input  logic                    valid_i;
+    output  logic                    valid_o;
+    input  logic    [7:0]           instrut_value;
+    input logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl;
     input logic [7 :0]             reglk_ctrl_i; // register lock values
     REG_BUS.in                     external_bus_io;
 
@@ -124,9 +137,14 @@ logic   [191:0] key_big0, key_big1, key_big2 ;
 logic   [127:0] ct;
 logic           ct_valid;
 logic  [3:0]clock;
+logic [2:0]counter ;
+logic [31:0]finish_counter ;
 
-assign external_bus_io.ready = 1'b1;
+// assign external_bus_io.ready = 1'b1;
 assign external_bus_io.error = 1'b0;
+assign request = 0;
+assign valid_o = 0;
+assign receive = 0;
 
 assign p_c_big    = {p_c[0], p_c[1], p_c[2], p_c[3]};
 assign state_big  = {state[0], state[1], state[2], state[3]};
@@ -134,8 +152,6 @@ assign key_big0    = {key0[0], key0[1], key0[2], key0[3], key0[4], key0[5]};
 assign key_big1    = {key1[0], key1[1], key1[2], key1[3], key1[4], key1[5]}; 
 assign key_big2    = {key2[0], key2[1], key2[2], key2[3], key2[4], key2[5]}; 
 ///////////////////////////////////////////////////////////////////////////
-logic t_clk;     
-logic t_reset;   
 logic [31:0]t_i_addr;
 logic t_i_write ; // 0=read, 1=write
 logic [31:0]t_i_rdata;
@@ -152,11 +168,12 @@ logic [3:0]t_o_wstrb ;
 logic t_o_error ;
 logic t_o_valid ;
 logic t_o_ready ;
-logic t_alarm   ;
-logic t_ext_wr   ;
-logic [10:0]t_ext_data_in ;
-logic [19:0]t_ext_act_in ;
-logic [3:0]t_ext_addr ;
+logic alarm;
+logic ext_wr;
+logic [16:0] ext_data_in;
+logic [19:0] ext_act_in;
+logic [2:0] ext_addr;
+///////////////////////////////////////////////////////////////////////////
 logic test;
 ///////////////////////////////////////////////////////////////////////////
 assign t_clk = clk_i;
@@ -181,6 +198,9 @@ always @(posedge clk_i)
                 p_c[2] <= 0;
                 clock <=0;
                 p_c[3] <= 0;
+                counter <= 0 ;
+                finish_counter <= 0; 
+                external_bus_io.ready <= 1'b0;
                 state[0] <= 0;
                 state[1] <= 0;
                 state[2] <= 0;
@@ -189,6 +209,9 @@ always @(posedge clk_i)
                 // $display("start at : %d, clock %b\n",testCycle,clk_i);
             end
         else if(external_bus_io.write)begin
+            counter <= counter+1;
+            if(counter == 5)
+                external_bus_io.ready <= 1'b1;
             case(external_bus_io.addr[8:2])
                 0:
                     start  <= reglk_ctrl_i[1] ? start  : external_bus_io.wdata[0];
@@ -246,9 +269,14 @@ always @(posedge clk_i)
                     key2[0] <= reglk_ctrl_i[5] ? key2[0] : external_bus_io.wdata;
                 32: 
                     key_sel <= reglk_ctrl_i[5] ? key_sel : external_bus_io.wdata;
+                33:
+                    finish_counter <= external_bus_io.wdata;
                 default:
                     ;
             endcase
+        end
+        else begin
+            counter <= 0;
         end
     end // always @ (posedge wb_clk_i)
 
@@ -268,10 +296,9 @@ always @(*)
                 external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[1];
             4:
                 external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[0];
-            11:begin
+            11:
                 external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, ct_valid};
                 // external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, test};
-            end
             12:
                 external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[31:0];
             13:                                                 
@@ -285,9 +312,40 @@ always @(*)
         endcase
     end // always @ (*)
 
-
+load_instruction load(
+            .clk_i(clk_i),
+            .rst_ni(rst_ni),
+            .instrut_value(instrut_value),
+            .load_ctrl(load_ctrl),
+            .id(ariane_soc::AES2),
+            .ext_wr(ext_wr),
+            .ext_data_in(ext_data_in),
+            .ext_addr(ext_addr)
+);
+redirectmop mop(   
+                .clk(clk_i),
+                .reset(rst_ni),
+                .i_addr(t_i_addr),
+                .i_write(t_i_write),
+                .i_rdata(t_i_rdata),
+                .i_wdata(t_i_wdata),
+                .i_wstrb(t_i_wstrb),
+                .i_error(t_i_error),
+                .i_valid(t_i_valid),
+                .i_ready(t_i_ready),
+                .o_addr(t_o_addr),
+                .o_write(t_o_write),
+                .o_rdata(t_o_rdata),
+                .o_wdata(t_o_wdata),
+                .o_valid(t_o_valid),
+                .o_ready(t_o_ready),
+                .alarm(alarm),
+                .ext_wr(ext_wr),
+                .ext_data_in(ext_data_in),
+                .ext_act_in(ext_act_in),
+                .ext_addr(ext_addr)
+            );
 // select the proper key
-
 assign key_big = key_sel[1] ? key_big2 : ( key_sel[0] ? key_big1 : key_big0 );  
 aes_192_sed aes(
             .clk(clk_i),

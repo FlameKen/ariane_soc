@@ -29,7 +29,10 @@ module axi_node_intf_wrap #(
     
     input logic [PRIV_LVL_WIDTH-1:0]      priv_lvl_i,  
     input logic [NB_SLAVE-1:0][NB_MASTER-1:0][NB_PRIV_LVL-1:0] access_ctrl_i,  
-
+    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
+    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
+    input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
+    output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
     // Memory map
     input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  start_addr_i,
     input  logic [NB_MASTER-1:0][AXI_ADDR_WIDTH-1:0]  end_addr_i
@@ -374,6 +377,11 @@ module axi_node_intf_wrap #(
     .master_ruser_i         ( s_master_r_user    ),
     .master_rvalid_i        ( s_master_r_valid   ),
     .master_rready_o        ( s_master_r_ready   ),
+
+    .MoP_request(MoP_request),
+    .MoP_receive(MoP_receive),
+    .valid_i(valid_i),
+    .valid_o(valid_o), 
 
     .cfg_START_ADDR_i       ( s_start_addr       ),
     .cfg_END_ADDR_i         ( s_end_addr         ),

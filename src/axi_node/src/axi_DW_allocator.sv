@@ -81,10 +81,10 @@ module axi_DW_allocator
   // PUSH Interface to DW allocator
   input  logic                                                          push_ID_i,
   input  logic [LOG_N_TARG+N_TARG_PORT-1:0]                             ID_i, // {BIN_ID, OH_ID};
-  output logic                                                          grant_FIFO_ID_o,
-  output logic [N_TARG_PORT-1:0]                                                         redirect_valid,
-  output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         source_o,
-  output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         target_o
+  output logic                                                          grant_FIFO_ID_o
+  // output logic [N_TARG_PORT-1:0]                                                         redirect_valid,
+  // output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         source_o,
+  // output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         target_o
 );
 
 localparam      AUX_WIDTH = AXI_DATA_W + AXI_NUMBYTES + 1 + AXI_USER_W;
@@ -101,23 +101,23 @@ logic [N_TARG_PORT-1:0][AUX_WIDTH-1:0]                          AUX_VECTOR_IN;
 enum logic { SINGLE_IDLE, BURST }                               CS, NS;
 genvar i;
 
-redirect_mop
-#(
-.N_TARG_PORT(N_TARG_PORT),
-.AXI_DATA_W(AXI_DATA_W),
-.LOG_N_INIT(LOG_N_INIT)
-)
-mop1
-(
-.clk(clk),
-.rst_n(rst_n),
-.wdata_i(wdata_i),
-.wvalid_i(wvalid_i),
-.redirect_valid(redirect_valid),
-.source_o(source_o),
-.target_o(target_o)
-// .wvalid_i(wvalid_i)
-);
+// redirect_mop
+// #(
+// .N_TARG_PORT(N_TARG_PORT),
+// .AXI_DATA_W(AXI_DATA_W),
+// .LOG_N_INIT(LOG_N_INIT)
+// )
+// mop1
+// (
+// .clk(clk),
+// .rst_n(rst_n),
+// .wdata_i(wdata_i),
+// .wvalid_i(wvalid_i),
+// .redirect_valid(redirect_valid),
+// .source_o(source_o),
+// .target_o(target_o)
+// // .wvalid_i(wvalid_i)
+// );
 
 
 generate

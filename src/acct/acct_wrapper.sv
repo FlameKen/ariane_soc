@@ -60,8 +60,8 @@ always @(posedge clk_i)
                     acct_mem[01]  <= reglk_ctrl_i[5] ? acct_mem[01] : external_bus_io.wdata; 
                 2:                      
                 begin
-                    // acct_mem[02]  <= reglk_ctrl_i[5] ? acct_mem[02] : external_bus_io.wdata;
-                    acct_mem[02]  <= acct_mem[02]; 
+                    acct_mem[02]  <= reglk_ctrl_i[5] ? acct_mem[02] : external_bus_io.wdata;
+                    // acct_mem[02]  <= acct_mem[02]; 
                     // $display("2 acct : %d, wdata :%d",acct_mem[02],external_bus_io.wdata);
                     // acct_mem[02]  <= external_bus_io.wdata; 
                     // $display("2 acct : %d, wdata :%d",acct_mem[02],external_bus_io.wdata);

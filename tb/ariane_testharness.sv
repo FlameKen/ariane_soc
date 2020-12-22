@@ -31,7 +31,7 @@ module ariane_testharness #(
 );
 
     localparam NB_SLAVE = 3; 
-
+    
     // disable test-enable
     logic        test_en;
     logic        ndmreset;
@@ -66,7 +66,10 @@ module ariane_testharness #(
     logic        dmi_req_valid;
     logic        dmi_resp_ready;
     logic        dmi_resp_valid;
-
+    logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request     ;
+    logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive     ;
+    logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i;
+    logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o;
     logic [31:0] jtag_key; 
     logic [NB_SLAVE-1:0][4*ariane_soc::NB_PERIPHERALS-1 :0]   access_ctrl_reg; 
 
@@ -473,9 +476,14 @@ module ariane_testharness #(
         .slave        ( slave      ),
         .master       ( master     ),
 	.priv_lvl_i   ( priv_lvl   ),  
-	.access_ctrl_i( access_ctrl),  
+	.access_ctrl_i( access_ctrl), 
+    .MoP_request(MoP_request),
+    .MoP_receive(MoP_receive),
+    .valid_i(valid_i),
+    .valid_o(valid_o), 
         .start_addr_i ({
             ariane_soc::DebugBase,
+            ariane_soc::MOPBase,
             ariane_soc::Debug2Base,
             ariane_soc::TESTBase,
             ariane_soc::AES2Base,
@@ -496,6 +504,7 @@ module ariane_testharness #(
         }),
         .end_addr_i   ({
             ariane_soc::DebugBase    + ariane_soc::DebugLength - 1,
+            ariane_soc::MOPBase      + ariane_soc::MOPLength -1,
             ariane_soc::Debug2Base    + ariane_soc::Debug2Length - 1,
             ariane_soc::TESTBase    + ariane_soc::TESTLength - 1,
             ariane_soc::AES2Base     + ariane_soc::AES2Length - 1,
@@ -568,6 +577,7 @@ module ariane_testharness #(
       .uart              ( master[ariane_soc::UART]     ),
       .aes               ( master[ariane_soc::AES]      ), 
       .aes2              ( master[ariane_soc::AES2]     ), 
+      .mop               (master[ariane_soc::MOP]      ),
       .debug2            ( master[ariane_soc::Debug2]   ), 
       .test              ( master[ariane_soc::TEST]     ), 
       .sha256            ( master[ariane_soc::SHA256]   ), 
@@ -602,6 +612,10 @@ module ariane_testharness #(
       .spi_mosi          ( ),
       .spi_miso          ( ),
       .testCycle         ( testCycle), 
+      .MoP_request          (MoP_request),
+      .MoP_receive          (MoP_receive),
+      .valid_i          (valid_i),
+      .valid_o          (valid_o),
       .spi_ss            ( )
     );
 

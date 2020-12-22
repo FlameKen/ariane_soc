@@ -54,16 +54,19 @@ package ariane_soc;
         AES2     = 14,    
         TEST     = 15,    
         Debug2   = 16,
-        Debug    = 17
+        MOP      = 17,
+        Debug    = 18
     } axi_slaves_t;
 
     localparam NB_PERIPHERALS = Debug + 1;
+    localparam LOG_N_INIT = $clog2(NB_PERIPHERALS);
     // localparam NB_PERIPHERALS = 18;
 
     localparam logic[63:0] DebugLength    = 64'h1000;
     localparam logic[63:0] Debug2Length   = 64'h1000;
     localparam logic[63:0] AES2Length     = 64'h1000;
     localparam logic[63:0] TESTLength     = 64'h1000;
+    localparam logic[63:0] MOPLength      = 64'h1000;
     localparam logic[63:0] ROMLength      = 64'h10000;
     localparam logic[63:0] REGLKLength    = 64'h10000;
     localparam logic[63:0] AcCtLength     = 64'h10000;
@@ -87,6 +90,8 @@ package ariane_soc;
         Debug2Base   = 64'h0000_2000,
         AES2Base     = 64'h0000_4000,
         TESTBase     = 64'h0000_6000,  
+        MOPBase      = 64'h0000_8000,  
+        MOP2Base      = 64'h0000_9000,  
         ROMBase      = 64'h0001_0000,
         REGLKBase    = 64'h0011_0000, 
         AcCtBase     = 64'h0021_0000, 

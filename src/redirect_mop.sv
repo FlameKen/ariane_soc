@@ -1,70 +1,112 @@
-module redirect_mop #(
-    parameter                   N_TARG_PORT    = 7,
-    parameter                   AXI_DATA_W     = 64,
-    parameter LOG_N_INIT = 2
-)(
-  input  logic                                                        clk,
-    input  logic                                                          rst_n,
-    input  logic [N_TARG_PORT-1:0] [AXI_DATA_W-1:0]                       wdata_i,
-    input  logic [N_TARG_PORT-1:0]                                        wvalid_i,
-  output logic [N_TARG_PORT-1:0]                                                         redirect_valid,
-  output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         source_o,
-  output logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                         target_o
-  // output  logic [N_TARG_PORT-1:0]                                        wvalid_r_o
-);
-    
-integer ii;
-integer                                                                          source[N_TARG_PORT-1:0];
-integer                                                                         target[N_TARG_PORT-1:0];
-logic [N_TARG_PORT-1:0][1:0]                                                    redirect_start;
 
-always @(posedge clk) begin
-  for (ii=0; ii<N_TARG_PORT; ii=ii+1) begin
-    if(rst_n == 1'b0)begin
-       redirect_start[ii] = 0 ;
-       target[ii]         = 0 ;
-       source[ii]         = 0;
-      //  wvalid_r_o[ii] = wvalid_i[ii];
-       redirect_valid[ii] = 0;
+module redirect_mop(
+  input  logic                   clk_i,
+  input  logic                   rst_ni,
+  input  logic [ariane_soc::LOG_N_INIT-1 : 0]     target,
+  input  logic [ariane_soc::LOG_N_INIT-1 : 0]     source,
+  input logic                     override,
+  input  logic                    valid_i,
+  output logic [ariane_soc::LOG_N_INIT-1:0]   request,
+  output logic [ariane_soc::LOG_N_INIT-1:0]   receive,
+  output  logic                   valid_o
+);
+logic redirected;
+  always@(*)begin
+    if(~rst_ni)begin
+        redirected = 0;
+        request = 0;
+        receive = 0;
     end
     else begin
-      if(wdata_i[ii] == ariane_soc::ERROR_REDIRECT && wvalid_i[ii] == 1)begin
-         redirect_start[ii] = 1;
-         source[ii]         = 1;
-         redirect_valid[ii] = 0;
-        //  wvalid_r_o[ii] = 0;
-        // wvalid_r_o[ii] = wvalid_i[ii];
-      end
-      else if (redirect_start[ii] == 1 && wvalid_i[ii] == 1) begin
-        //  target[ii] = 1;
-         target[ii] = wdata_i[ii][63:32];
-         redirect_start[ii] = 0 ;
-         redirect_valid[ii] = 1;
-        //  wvalid_r_o[ii] = 0;
-        // wvalid_r_o[ii] = wvalid_i[ii];
-      end
-      
-      else if(wdata_i[ii] == ariane_soc::ERROR_REDIRECT_STOP && wvalid_i[ii] == 1)begin
-         redirect_valid[ii] = 0;
-         redirect_start[ii] = 0 ;
-        //  wvalid_r_o[ii] = 0;
-        // wvalid_r_o[ii] = wvalid_i[ii];
-      end
-      else begin
-         target[ii] = target[ii];
-         source[ii] = source[ii];
-        //  wvalid_r_o[ii] = wvalid_i[ii];
-         redirect_valid[ii] = redirect_valid[ii];
-         redirect_start[ii] = redirect_start[ii];
-      end
+        if(valid_i)begin
+            request = source;
+            receive = target;
+            redirected = 1;
+        end
+        else begin
+            request = 0;
+            receive = 0;
+            redirected = (redirected == 0) ? 0 : 1;
+        end
     end
-  end
+    
 end
+always @(posedge clk_i)begin
+    if(override && valid_i == 0 && redirected == 0)
+        valid_o  <= 1;
 
-always @(*)begin
-  for (ii=0; ii<N_TARG_PORT; ii=ii+1) begin
-    source_o[ii] = source[ii];
-    target_o[ii] = target[ii];
-  end
+    else 
+        valid_o <= 0 ;
+end
+endmodule
+module load_instruction(
+  input logic clk_i,
+  input logic rst_ni,
+  input  logic    [7:0]           instrut_value,
+  input logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl,
+  input  logic [ariane_soc::LOG_N_INIT-1 : 0]     id,
+  output logic ext_wr,
+  output  logic [16:0] ext_data_in,
+  output logic [2:0] ext_addr
+
+);
+localparam CTRL_IDLE = 'd0; 
+localparam CTRL_START_LOAD = 'd1;
+localparam CTRL_LOAD = 'd2; 
+logic [3:0]instru_state;
+logic [3:0] count;
+always@(*)begin
+    case (instru_state)
+        CTRL_START_LOAD:
+        begin
+            if(load_ctrl[id] == 1)begin
+                ext_wr = 1;
+                ext_data_in = instrut_value;
+                ext_addr = count;
+            end
+            else begin
+                ext_wr = 0;
+            end
+        end
+        CTRL_LOAD: 
+        begin
+            ext_wr = 0;
+        end
+    endcase
+end
+always @(posedge clk_i)
+begin
+    if(~rst_ni)begin
+        instru_state <= 1;
+        count <=0;
+        ext_wr <= 0 ;
+        ext_data_in <=0;
+        ext_addr <= 0;
+    end
+    else begin
+      case (instru_state)
+        CTRL_START_LOAD:
+            begin
+                if(load_ctrl[id] == 1)begin
+                    // ext_wr <= 1;
+                    // ext_data_in <= instrut_value;
+                    // ext_addr <= count;
+                    count<=count + 1;
+                end
+                else begin
+                  if(count == 8)
+                        instru_state <= 2;
+                //   ext_wr <= 0;
+
+                end
+            end
+        CTRL_LOAD: 
+            begin
+                instru_state <= 1;
+                count <=0;
+                // ext_wr <= 0;
+            end
+        endcase
+    end
 end
 endmodule
