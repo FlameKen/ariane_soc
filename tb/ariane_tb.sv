@@ -61,7 +61,7 @@ module ariane_tb;
 
     // Clock process
     initial begin
-        $display("start in ariane_tb\n");
+        // $display("start in ariane_tb\n");
         clk_i = 1'b0;
         rst_ni = 1'b0;
         testCycle = 1'b0;
@@ -72,11 +72,8 @@ module ariane_tb;
         forever begin
             #(CLOCK_PERIOD/2) clk_i = 1'b1;
             #(CLOCK_PERIOD/2) clk_i = 1'b0;
-
-            //if (cycles > max_cycles)
-            //    $fatal(1, "Simulation reached maximum cycle count of %d", max_cycles);
             cycles++;
-            testCycle = testCycle+1;
+            // testCycle = testCycle+1;
         end
     end
 
@@ -93,10 +90,10 @@ module ariane_tb;
             wait (exit_o[0]);
 
             if ((exit_o >> 1)) begin
-                $display("cycle : %d test : %d \n",cycles,testCycle);
+                // $display("cycle : %d test : %d \n",cycles,testCycle);
                 `uvm_error( "Core Test",  $sformatf("*** FAILED *** (tohost = %0d)", (exit_o >> 1)))
             end else begin
-                $display("cycle : %d test : %d \n",cycles,testCycle);
+                // $display("cycle : %d test : %d \n",cycles,testCycle);
                 `uvm_info( "Core Test",  $sformatf("*** SUCCESS *** (tohost = %0d)", (exit_o >> 1)), UVM_LOW)
             end
             $finish();

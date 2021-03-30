@@ -117,9 +117,6 @@ module axi_response_block
    output logic                                                      wready_o,
    output logic [N_INIT_PORT-1:0]                                    wvalid_o,
    input  logic [N_INIT_PORT-1:0]                                    wready_i,
-   input  logic [N_INIT_PORT-1:0]                                                     redirect_valid,
-   input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                     source,
-   input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                     target,
 
    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
@@ -338,9 +335,9 @@ AW_ADDR_DEC
     .handle_error_o           ( handle_error_aw       ),
     .wdata_error_completed_i  ( wdata_error_completed ),
     .sample_awdata_info_o     ( sample_awdata_info    ),
-    .redirect_valid           ( redirect_valid        ),
-    .source                   ( source                ),
-    .target                   ( target                ),
+    // .redirect_valid           ( redirect_valid        ),
+    // .source                   ( source                ),
+    // .target                   ( target                ),
     // .redirect_valid_r           ( redirect_valid_r        ),
     // .source_r                   ( source_r                ),
     // .target_r                   ( target_r                )

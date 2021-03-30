@@ -148,9 +148,9 @@ module axi_request_block
   output  logic                                                         wvalid_o,       //master data valid
   input   logic                                                         wready_i,       //slave ready to accept
   // -----------------------------------------------------------------------------------//
-  output  logic [N_TARG_PORT-1:0]                                                     redirect_valid,
-  output  logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                     source,
-  output  logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                     target,
+  // output  logic [N_TARG_PORT-1:0]                                                     redirect_valid,
+  // output  logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                     source,
+  // output  logic [N_TARG_PORT-1:0][LOG_N_INIT-1:0]                                     target,
 
   //AXI read address bus ---------------------------------------------------------------//
   output  logic [ AXI_ID_OUT-1:0]                                       arid_o,

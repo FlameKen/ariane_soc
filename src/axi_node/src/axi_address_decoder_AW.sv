@@ -78,9 +78,9 @@ module axi_address_decoder_AW
     output logic                                                        handle_error_o,
     input  logic                                                        wdata_error_completed_i,
     output logic                                                        sample_awdata_info_o,
-    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                source,
-    input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                target,
-    input  logic [N_INIT_PORT-1:0]                                                redirect_valid,
+    // input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                source,
+    // input  logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                                target,
+    // input  logic [N_INIT_PORT-1:0]                                                redirect_valid,
     input  logic [LOG_N_INIT-1:0]                                source_r,
     input  logic [LOG_N_INIT-1:0]                                target_r,
     input  logic                                                 redirect_valid_r
@@ -115,18 +115,17 @@ module axi_address_decoder_AW
 
       // First calculate for each region where what slave ist matching
       // for(j=0;j<N_REGION;j++)
-      // begin
+      // begin: for5
       //      for(i=0;i<N_INIT_PORT;i++)
-      //      begin
+      //      begin: for4
       //             assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (awaddr_i >= START_ADDR_i[j][i]) && (awaddr_i <= END_ADDR_i[j][i]) : 1'b0;
       //      end
       // end
       // transpose the match_region_int bidimensional array
       for(j=0;j<N_INIT_PORT;j++)
-      begin
+      begin: for1
            for(i=0;i<N_REGION;i++)
-           begin
-            //  assign match_region_rev[j][i] = match_region_int_out[i][j];
+           begin: for2
             assign match_region_rev[j][i] = match_region_int[i][j];
            end
       end
@@ -134,7 +133,7 @@ module axi_address_decoder_AW
 
       //Or reduction
       for(i=0;i<N_INIT_PORT;i++)
-      begin
+      begin: for3
         assign match_region[i]  =  | match_region_rev[i];
       end
 
@@ -145,7 +144,7 @@ module axi_address_decoder_AW
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
 
   endgenerate
-  swap_n
+  swap
 #(
   .ADDR_WIDTH(ADDR_WIDTH),
   .N_INIT_PORT(N_INIT_PORT),
@@ -165,34 +164,7 @@ i_swap_n
   .target(target_r),
   .match_region_int_o(match_region_int)
 );
-//   swap_r 
-// #(
-//   .N_INIT_PORT(N_INIT_PORT),
-//   .N_REGION(N_REGION),
-//   .LOG_N_INIT(LOG_N_INIT)
-// )
-// i_swap_r
-// (
-//   .match_region_int_i(match_region_int),
-//   .select(redirect_valid_r),
-//   .source(source_r),
-//   .target(target_r),
-//   .match_region_int_o(match_region_int_out)
-// );
-//   swap 
-// #(
-//   .N_INIT_PORT(N_INIT_PORT),
-//   .N_REGION(N_REGION),
-//   .LOG_N_INIT(LOG_N_INIT)
-// )
-// i_swap
-// (
-//   .match_region_int_i(match_region_int),
-//   .select(redirect_valid),
-//   .source(source),
-//   .target(target),
-//   .match_region_int_o(match_region_int_out)
-// );
+  
 
 
 

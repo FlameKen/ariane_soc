@@ -96,28 +96,12 @@ module aes2_wrapper #(
     parameter int ADDR_WIDTH         = 32,   // width of external address bus
     parameter int DATA_WIDTH         = 32   // width of external data bus
 )(
-           clk_i,
-           rst_ni,
-           reglk_ctrl_i,
-           request,
-           receive,
-           valid_i,
-           valid_o,
-           instrut_value,
-           load_ctrl,
-           external_bus_io
+           input  logic clk_i,
+           input  logic rst_ni,
+           input logic [7 :0] reglk_ctrl_i,
+           MOP_BUS.out mop_bus_io,
+           REG_BUS.in external_bus_io
        );
-
-    input  logic                   clk_i;
-    input  logic                   rst_ni;
-    output logic [LOG_N_INIT-1:0]   request;
-    output logic [LOG_N_INIT-1:0]   receive;
-    input  logic                    valid_i;
-    output  logic                    valid_o;
-    input  logic    [7:0]           instrut_value;
-    input logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl;
-    input logic [7 :0]             reglk_ctrl_i; // register lock values
-    REG_BUS.in                     external_bus_io;
 
 // internal logics
 
@@ -142,9 +126,9 @@ logic [31:0]finish_counter ;
 
 // assign external_bus_io.ready = 1'b1;
 assign external_bus_io.error = 1'b0;
-assign request = 0;
-assign valid_o = 0;
-assign receive = 0;
+assign mop_bus_io.request = 0;
+assign mop_bus_io.valid_o = 0;
+assign mop_bus_io.receive = 0;
 
 assign p_c_big    = {p_c[0], p_c[1], p_c[2], p_c[3]};
 assign state_big  = {state[0], state[1], state[2], state[3]};
@@ -170,9 +154,14 @@ logic t_o_valid ;
 logic t_o_ready ;
 logic alarm;
 logic ext_wr;
-logic [16:0] ext_data_in;
+logic [10:0] ext_data_in;
 logic [19:0] ext_act_in;
 logic [2:0] ext_addr;
+logic [17:0] re_ext_data_in;
+logic re_ext_wr;
+logic [1:0] re_ext_addr;
+logic [3:0] source;
+logic [3:0] target;
 ///////////////////////////////////////////////////////////////////////////
 logic test;
 ///////////////////////////////////////////////////////////////////////////
@@ -315,36 +304,41 @@ always @(*)
 load_instruction load(
             .clk_i(clk_i),
             .rst_ni(rst_ni),
-            .instrut_value(instrut_value),
-            .load_ctrl(load_ctrl),
+            .instrut_value(mop_bus_io.instrut_value),
+            .load_ctrl(mop_bus_io.load_ctrl),
             .id(ariane_soc::AES2),
             .ext_wr(ext_wr),
             .ext_data_in(ext_data_in),
-            .ext_addr(ext_addr)
+            .ext_addr(ext_addr),
+            .re_ext_wr(re_ext_wr),
+            .ext_act_in(ext_act_in),
+            .re_ext_data_in(re_ext_data_in),
+            .re_ext_addr(re_ext_addr),
+            .change(mop_bus_io.change)
 );
-redirectmop mop(   
-                .clk(clk_i),
-                .reset(rst_ni),
-                .i_addr(t_i_addr),
-                .i_write(t_i_write),
-                .i_rdata(t_i_rdata),
-                .i_wdata(t_i_wdata),
-                .i_wstrb(t_i_wstrb),
-                .i_error(t_i_error),
-                .i_valid(t_i_valid),
-                .i_ready(t_i_ready),
-                .o_addr(t_o_addr),
-                .o_write(t_o_write),
-                .o_rdata(t_o_rdata),
-                .o_wdata(t_o_wdata),
-                .o_valid(t_o_valid),
-                .o_ready(t_o_ready),
-                .alarm(alarm),
-                .ext_wr(ext_wr),
-                .ext_data_in(ext_data_in),
-                .ext_act_in(ext_act_in),
-                .ext_addr(ext_addr)
-            );
+// redirectmop mop(   
+//                 .clk(clk_i),
+//                 .reset(rst_ni),
+//                 .i_addr(t_i_addr),
+//                 .i_write(t_i_write),
+//                 .i_rdata(t_i_rdata),
+//                 .i_wdata(t_i_wdata),
+//                 .i_wstrb(t_i_wstrb),
+//                 .i_error(t_i_error),
+//                 .i_valid(t_i_valid),
+//                 .i_ready(t_i_ready),
+//                 .o_addr(t_o_addr),
+//                 .o_write(t_o_write),
+//                 .o_rdata(t_o_rdata),
+//                 .o_wdata(t_o_wdata),
+//                 .o_valid(t_o_valid),
+//                 .o_ready(t_o_ready),
+//                 .alarm(alarm),
+//                 .ext_wr(ext_wr),
+//                 .ext_data_in(ext_data_in),
+//                 .ext_act_in(ext_act_in),
+//                 .ext_addr(ext_addr)
+//             );
 // select the proper key
 assign key_big = key_sel[1] ? key_big2 : ( key_sel[0] ? key_big1 : key_big0 );  
 aes_192_sed aes(

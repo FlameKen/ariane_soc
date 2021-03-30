@@ -78,7 +78,6 @@ module axi_address_decoder_AR
   logic [N_INIT_PORT-1:0]                               match_region;
   logic [N_INIT_PORT:0]                                 match_region_masked;
   logic [N_REGION-1:0][N_INIT_PORT-1:0]                 match_region_int;
-  logic [N_REGION-1:0][N_INIT_PORT-1:0]                 match_region_int_out;
   logic [N_INIT_PORT-1:0][N_REGION-1:0]                 match_region_rev;
 
 
@@ -107,7 +106,6 @@ module axi_address_decoder_AR
            for(i=0;i<N_REGION;i++)
            begin
              assign match_region_rev[j][i] = match_region_int[i][j];
-            // assign match_region_rev[j][i] = match_region_int_out[i][j];
            end
       end
 
@@ -125,7 +123,7 @@ module axi_address_decoder_AR
       assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
   endgenerate
 
-  swap_n
+  swap
 #(
   .ADDR_WIDTH(ADDR_WIDTH),
   .N_INIT_PORT(N_INIT_PORT),

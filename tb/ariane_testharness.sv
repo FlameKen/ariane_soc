@@ -114,8 +114,8 @@ module ariane_testharness #(
 
     initial begin
         if (!$value$plusargs("jtag_rbb_enable=%b", jtag_enable)) jtag_enable = 'h0;
-        $display("start in testharness\n");
-        $display("testcycle : %d\n",testCycle);
+        // $display("start in testharness\n");
+        // $display("testcycle : %d\n",testCycle);
         // $monitor("jtag enable : %b jtag exit %b dmi exit %b \n",jtag_enable[0],jtag_exit,dmi_exit);
     end
 
@@ -223,7 +223,7 @@ module ariane_testharness #(
         .dmi_resp_o           ( debug_resp           )
     );
 
-    axi_master_connect i_axi_master_dm (.axi_req_i(dm_axi_m_req), .axi_resp_o(dm_axi_m_resp), .master(slave[1]));
+    
     axi_slave_connect  i_axi_slave_dm  (.axi_req_o(dm_axi_s_req), .axi_resp_i(dm_axi_s_resp), .slave(master[ariane_soc::Debug]));
 
 
@@ -618,7 +618,7 @@ module ariane_testharness #(
       .valid_o          (valid_o),
       .spi_ss            ( )
     );
-
+    axi_master_connect i_axi_master_dm (.axi_req_i(dm_axi_m_req), .axi_resp_o(dm_axi_m_resp), .master(slave[1]));
     axi_master_connect i_axi_master_connect_dma (.axi_req_i(dma_axi_req), .axi_resp_o(dma_axi_resp), .master(slave[2]));
 
     uart_bus #(.BAUD_RATE(115200), .PARITY_EN(0)) i_uart_bus (.rx(tx), .tx(rx), .rx_en(1'b1));

@@ -73,22 +73,32 @@ module ariane_peripherals #(
     output logic               spi_ss
 );
 logic [7:0] TEST_SIGNAL;
-logic [LOG_N_INIT-1:0] request[ariane_soc::NB_PERIPHERALS-1 :0];
-logic [LOG_N_INIT-1:0] receive[ariane_soc::NB_PERIPHERALS-1 :0];
+logic [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]request;
+logic  [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]receive;
+logic  [LOG_N_INIT-1:0] request_2 [ariane_soc::NB_PERIPHERALS-1 :0];
+logic   [LOG_N_INIT-1:0]receive_2[ariane_soc::NB_PERIPHERALS-1 :0];
 logic [8*ariane_soc::NB_PERIPHERALS-1 :0]   reglk_ctrl; // Access control values
 logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl; // Access control values
-logic [7:0] instrut_value;
+logic [31:0] instrut_value;
+logic [1:0]change;
+logic  [ariane_soc::NB_PERIPHERALS-1 :0]idle;
+
 genvar i;
 generate
     for(i = 0 ; i < ariane_soc::NB_PERIPHERALS; i++)begin
-        if(i != 5 && i != 14 && i != 15 && i!= 16)begin
+        if(i != 5 && i != 14 && i != 15 )begin
             assign request[i] = 0;
             assign receive[i] = 0;
             // assign redirect_o[i] = 0;
         end
     end
-assign MoP_request = request.sum();
-assign MoP_receive = receive.sum();
+    for(i = 0 ; i < ariane_soc::NB_PERIPHERALS; i++)begin
+            assign request_2[i] = request[i];
+            assign receive_2[i] = receive[i];
+            // assign redirect_o[i] = 0;
+    end
+assign MoP_request = request_2.sum();
+assign MoP_receive = receive_2.sum();
     
 
 endgenerate
@@ -686,7 +696,9 @@ endgenerate
         .ADDR_WIDTH ( 32 ),
         .DATA_WIDTH ( 32 )
     ) reg_bus_aes (clk_i);
-    
+
+    MOP_BUS mop_bus_aes();
+
     logic [191:0] aes_key_in;
     logic         aes_penable;
     logic         aes_pwrite;
@@ -776,7 +788,18 @@ endgenerate
         .pslverr_o ( aes_pslverr ),
         .reg_o     ( reg_bus_aes )
     );
-
+    str_to_mop i_str_to_mop_aes(
+        .request            (request[ariane_soc::AES]),
+        .receive            (receive[ariane_soc::AES]),
+        .valid_i            (valid_o[ariane_soc::AES]),
+        .valid_o            (valid_i[ariane_soc::AES]),
+        .idle_IP            (idle[ariane_soc::AES]),
+        .instrut_value      (instrut_value),
+        .idle               (idle),
+        .load_ctrl          ( load_ctrl),
+        .change             ( change),
+        .mop_o              ( mop_bus_aes)
+    );
     aes_wrapper #(
         .LOG_N_INIT(LOG_N_INIT)
     ) i_aes_wrapper (
@@ -785,12 +808,13 @@ endgenerate
         .key_in             ( aes_key_in             ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES+8-1:8*ariane_soc::AES] ),
         .testCycle          (testCycle),
-        .request            (request[ariane_soc::AES]),
-        .receive            (receive[ariane_soc::AES]),
-        .valid_i            (valid_o[ariane_soc::AES]),
-        .valid_o            (valid_i[ariane_soc::AES]),
-        .instrut_value      (instrut_value),
-        .load_ctrl          ( load_ctrl),
+        // .request            (request[ariane_soc::AES]),
+        // .receive            (receive[ariane_soc::AES]),
+        // .valid_i            (valid_o[ariane_soc::AES]),
+        // .valid_o            (valid_i[ariane_soc::AES]),
+        // .instrut_value      (instrut_value),
+        // .load_ctrl          ( load_ctrl),
+        .mop_bus_io         ( mop_bus_aes),
         .external_bus_io    ( reg_bus_aes            )
     );
     // ---------------
@@ -802,6 +826,8 @@ endgenerate
         .DATA_WIDTH ( 32 )
     ) reg_bus_aes2 (clk_i);
     
+    MOP_BUS mop_bus_aes2();
+
     logic         aes2_penable;
     logic         aes2_pwrite;
     logic [31:0]  aes2_paddr;
@@ -890,19 +916,31 @@ endgenerate
         .pslverr_o ( aes2_pslverr ),
         .reg_o     ( reg_bus_aes2 )
     );
-
+    str_to_mop i_str_to_mop_aes2(
+        .request            (request[ariane_soc::AES2]),
+        .receive            (receive[ariane_soc::AES2]),
+        .valid_i            (valid_o[ariane_soc::AES2]),
+        .valid_o            (valid_i[ariane_soc::AES2]),
+        .instrut_value      (instrut_value),
+        .idle_IP            (idle[ariane_soc::AES2]),
+        .idle               (idle),
+        .load_ctrl          ( load_ctrl),
+        .change             ( change),
+        .mop_o              ( mop_bus_aes2)
+    );
     aes2_wrapper #(
         .LOG_N_INIT(LOG_N_INIT)
     ) i_aes2_wrapper (
         .clk_i              ( clk_i                  ),
         .rst_ni             ( rst_ni                 ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES2+8-1:8*ariane_soc::AES2] ),
-        .request            (request[ariane_soc::AES2]),
-        .receive            (receive[ariane_soc::AES2]),
-        .valid_i            (valid_o[ariane_soc::AES2]),
-        .valid_o            (valid_i[ariane_soc::AES2]),
-        .instrut_value      (instrut_value),
-        .load_ctrl          ( load_ctrl),
+        // .request            (request[ariane_soc::AES2]),
+        // .receive            (receive[ariane_soc::AES2]),
+        // .valid_i            (valid_o[ariane_soc::AES2]),
+        // .valid_o            (valid_i[ariane_soc::AES2]),
+        // .instrut_value      (instrut_value),
+        // .load_ctrl          ( load_ctrl),
+        .mop_bus_io         ( mop_bus_aes2),
         .external_bus_io    ( reg_bus_aes2            )
     );
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1641,6 +1679,8 @@ endgenerate
         .DATA_WIDTH ( 32 )
     ) reg_bus_debug2 (clk_i);
     
+    MOP_BUS mop_bus_debug2();
+
     logic         debug2_penable;
     logic         debug2_pwrite;
     logic [31:0]  debug2_paddr;
@@ -1736,12 +1776,13 @@ endgenerate
         .clk_i              ( clk_i             ),
         .rst_ni             ( rst_ni            ),
         .reglk_ctrl_i       ( TEST_SIGNAL ),
-        .request            (request[ariane_soc::Debug2]),
-        .receive            (receive[ariane_soc::Debug2]),
-        .valid_i            (valid_o[ariane_soc::Debug2]),
-        .valid_o            (valid_i[ariane_soc::Debug2]),
-        .instrut_value      (instrut_value),
-        .load_ctrl          (load_ctrl),
+        // .request            (request[ariane_soc::Debug2]),
+        // .receive            (receive[ariane_soc::Debug2]),
+        // .valid_i            (valid_o[ariane_soc::Debug2]),
+        // .valid_o            (valid_i[ariane_soc::Debug2]),
+        // .instrut_value      (instrut_value),
+        // .load_ctrl          (load_ctrl),
+        .mop_bus_io         ( mop_bus_debug2),
         .external_bus_io    ( reg_bus_debug2       )
     );
 
@@ -1750,7 +1791,7 @@ REG_BUS #(
         .ADDR_WIDTH ( 32 ),
         .DATA_WIDTH ( 32 )
     ) reg_bus_mop (clk_i);
-    
+    MOP_BUS mop_bus_mop();
     logic         mop_penable;
     logic         mop_pwrite;
     logic [31:0]  mop_paddr;
@@ -1850,7 +1891,55 @@ REG_BUS #(
         .valid_i            (valid_o[ariane_soc::MOP]),
         .valid_o            (valid_i[ariane_soc::MOP]),
         .instrut_value      (instrut_value),
+        .change             (change),
         .load_ctrl          (load_ctrl),
         .external_bus_io    ( reg_bus_mop       )
     );
+
+endmodule
+interface MOP_BUS #(
+  parameter LOG_N_INIT = 3
+);
+  logic [LOG_N_INIT-1:0] request;
+  logic valid_i;
+  logic valid_o;
+  logic [31:0] instrut_value;
+  logic [1:0] change;
+  logic [LOG_N_INIT-1:0] receive;
+  logic idle_IP;
+  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle;
+  logic [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl;
+  modport in (input valid_i, instrut_value, load_ctrl,idle, change, output idle_IP,valid_o,request,receive);
+  // modport out (output valid_i, instrut_value, load_ctrl, change, input valid_o,request,receive);
+  modport out (output valid_i, instrut_value, load_ctrl, idle,change, input idle_IP,receive,valid_o,request);
+
+endinterface
+module str_to_mop #(
+  parameter LOG_N_INIT = 3
+)
+(
+
+  output  logic          [LOG_N_INIT-1:0] request,
+  input  logic          valid_i,
+  output logic          idle_IP,
+  output  logic          valid_o,
+  input  logic [31:0]   instrut_value,
+  input  logic [1:0]    change,
+  input  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle,
+  output logic          [LOG_N_INIT-1:0] receive,
+  input logic          [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl,
+  MOP_BUS.out  mop_o
+);
+
+  always_comb begin
+    mop_o.valid_i = valid_i;
+    receive = mop_o.receive;
+    idle_IP = mop_o.idle_IP;
+    valid_o = mop_o.valid_o;
+    mop_o.instrut_value = instrut_value ;
+    mop_o.change = change;
+    mop_o.idle = idle;
+    request = mop_o.request;
+    mop_o.load_ctrl = load_ctrl ;
+  end
 endmodule

@@ -258,13 +258,17 @@ logic [N_REGION-1:0][N_MASTER_PORT-1:0][AXI_ADDRESS_W-1:0]      END_ADDR;
 logic [N_REGION-1:0][N_MASTER_PORT-1:0]                         valid_rule;
 logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                     connectivity_map;
 logic [ariane_soc::NB_PERIPHERALS-1 :0]        s_valid_o[N_SLAVE_PORT-1:0];
-logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0]                                                      redirect_valid;
-logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0]                                                      redirect_valid_int;
-logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0] [LOG_N_INIT-1:0]                                     source_int;
-logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0] [LOG_N_INIT-1:0]                                     source;
-logic [N_MASTER_PORT-1:0][N_SLAVE_PORT-1:0] [LOG_N_INIT-1:0]                                     target_int;
-logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0] [LOG_N_INIT-1:0]                                     target;
+ logic [N_SLAVE_PORT-1:0][ariane_soc::LOG_N_INIT-1:0]              MoP_request_array;
+ logic [N_SLAVE_PORT-1:0][ariane_soc::LOG_N_INIT-1:0]              MoP_receive_array;
+
 assign valid_o = s_valid_o.sum();
+assign MoP_receive_array[0] = MoP_receive;
+assign MoP_receive_array[1] = MoP_receive;
+assign MoP_request_array[0] = MoP_request;
+assign MoP_request_array[1] = MoP_request;
+//to let the adress decoder at other slaves remain intact
+assign MoP_receive_array[2] = 5;
+assign MoP_request_array[2] = 5;
 generate
 
 // 2D REQ AND GRANT MATRIX REVERSING (TRANSPOSE)
@@ -272,9 +276,6 @@ for(i=0;i<N_MASTER_PORT;i++)
 begin : _REVERSING_VALID_READY_MASTER
     for(j=0;j<N_SLAVE_PORT;j++)
     begin : _REVERSING_VALID_READY_SLAVE
-         assign redirect_valid[j][i] = redirect_valid_int[i][j] ;
-         assign source[j][i] = source_int[i][j] ;
-         assign target[j][i] = target_int[i][j] ;
 
          assign awready_int_reverse[j][i] = awready_int[i][j];
          assign wready_int_reverse[j][i]  = wready_int[i][j];
@@ -385,10 +386,6 @@ begin : _REQ_BLOCK_GEN
      .wuser_o  (  master_wuser_o[i]         ),
      .wvalid_o (  master_wvalid_o[i]        ), //master data valid
      .wready_i (  master_wready_i[i]        ), //slave ready to accept
-     //redirection ----------------------------
-     .redirect_valid(redirect_valid_int[i]),
-     .source(source_int[i]),
-     .target(target_int[i]),
      //AXI read address bus ---------------------------------------------------------------//
      .arid_o    (  master_arid_o[i]         ),
      .araddr_o  (  master_araddr_o[i]       ),
@@ -493,12 +490,9 @@ RESP_BLOCK
 
    .wvalid_o           (  wvalid_int[i]           ),
    .wready_i           (  wready_int_reverse[i]   ),
-   .redirect_valid(redirect_valid[i]),
-   .source(source[i]),
-   .target(target[i]),
 
-   .MoP_request(MoP_request),
-   .MoP_receive(MoP_receive),
+   .MoP_request(MoP_request_array[i]),
+   .MoP_receive(MoP_receive_array[i]),
    .valid_i(valid_i),
    .valid_o(s_valid_o[i]), 
 
