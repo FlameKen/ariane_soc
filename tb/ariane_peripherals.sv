@@ -68,6 +68,7 @@ module ariane_peripherals #(
     input  logic [191:0]       testCycle       ,
     output logic [LOG_N_INIT-1:0]              MoP_request     ,
     output logic [LOG_N_INIT-1:0]              MoP_receive     ,
+    output logic  [ariane_soc::NB_PERIPHERALS-1 :0]  redirection_idle,
     output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
     input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
     output logic               spi_ss
@@ -82,6 +83,7 @@ logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl; // Access control values
 logic [31:0] instrut_value;
 logic [1:0]change;
 logic  [ariane_soc::NB_PERIPHERALS-1 :0]idle;
+assign redirection_idle = idle;
 
 genvar i;
 generate
@@ -795,7 +797,7 @@ endgenerate
         .valid_o            (valid_i[ariane_soc::AES]),
         .idle_IP            (idle[ariane_soc::AES]),
         .instrut_value      (instrut_value),
-        .idle               (idle),
+        // .idle               (idle),
         .load_ctrl          ( load_ctrl),
         .change             ( change),
         .mop_o              ( mop_bus_aes)
@@ -923,7 +925,7 @@ endgenerate
         .valid_o            (valid_i[ariane_soc::AES2]),
         .instrut_value      (instrut_value),
         .idle_IP            (idle[ariane_soc::AES2]),
-        .idle               (idle),
+        // .idle               (idle),
         .load_ctrl          ( load_ctrl),
         .change             ( change),
         .mop_o              ( mop_bus_aes2)
@@ -1898,7 +1900,7 @@ REG_BUS #(
 
 endmodule
 interface MOP_BUS #(
-  parameter LOG_N_INIT = 3
+  parameter LOG_N_INIT = 5
 );
   logic [LOG_N_INIT-1:0] request;
   logic valid_i;
@@ -1907,15 +1909,15 @@ interface MOP_BUS #(
   logic [1:0] change;
   logic [LOG_N_INIT-1:0] receive;
   logic idle_IP;
-  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle;
+//   logic [ariane_soc::NB_PERIPHERALS-1 :0] idle;
   logic [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl;
-  modport in (input valid_i, instrut_value, load_ctrl,idle, change, output idle_IP,valid_o,request,receive);
+  modport in (input valid_i, instrut_value, load_ctrl, change, output idle_IP,valid_o,request,receive);
   // modport out (output valid_i, instrut_value, load_ctrl, change, input valid_o,request,receive);
-  modport out (output valid_i, instrut_value, load_ctrl, idle,change, input idle_IP,receive,valid_o,request);
+  modport out (output valid_i, instrut_value, load_ctrl,change, input idle_IP,receive,valid_o,request);
 
 endinterface
 module str_to_mop #(
-  parameter LOG_N_INIT = 3
+  parameter LOG_N_INIT = 5
 )
 (
 
@@ -1925,7 +1927,7 @@ module str_to_mop #(
   output  logic          valid_o,
   input  logic [31:0]   instrut_value,
   input  logic [1:0]    change,
-  input  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle,
+//   input  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle,
   output logic          [LOG_N_INIT-1:0] receive,
   input logic          [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl,
   MOP_BUS.out  mop_o
@@ -1938,7 +1940,7 @@ module str_to_mop #(
     valid_o = mop_o.valid_o;
     mop_o.instrut_value = instrut_value ;
     mop_o.change = change;
-    mop_o.idle = idle;
+    // mop_o.idle = idle;
     request = mop_o.request;
     mop_o.load_ctrl = load_ctrl ;
   end

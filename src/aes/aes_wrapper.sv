@@ -54,6 +54,7 @@ logic [31:0]t_o_rdata ;
 logic [31:0]t_o_wdata ;
 logic [3:0]t_o_wstrb ;
 logic t_o_error ;
+logic error;
 logic t_o_valid ;
 logic t_o_ready ;
 logic alarm;
@@ -74,7 +75,8 @@ logic override_update;
 ///////////////////////////////////////////////////////////////////////////
 
 assign external_bus_io.ready = t_o_ready;
-assign external_bus_io.error = t_o_error;
+// assign external_bus_io.error = t_o_error;
+assign external_bus_io.error = override_update;
 assign external_bus_io.rdata = t_o_rdata;
 
 assign t_i_addr = external_bus_io.addr;
@@ -89,9 +91,10 @@ assign t_i_wstrb = external_bus_io.wstrb;
 redirect_mop r_mop(
     .clk_i(clk_i),
     .rst_ni(rst_ni),
-    .target(target),
-    .source(source),
+    .target({1'b0,target}),
+    .source({1'b0,source}),
     .override(override|override_update),
+    // .idle(mop_bus_io.idle),
     .valid_i(mop_bus_io.valid_i),
     .valid_o(mop_bus_io.valid_o),
     .request(mop_bus_io.request),
@@ -99,7 +102,7 @@ redirect_mop r_mop(
 );
 newmop_5 mop(   
                 .clk(clk_i),
-                .reset(rst_ni),
+                .reset(~rst_ni),
                 .i_addr(t_i_addr),
                 .i_write(t_i_write),
                 .i_rdata(t_i_rdata),

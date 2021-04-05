@@ -68,6 +68,7 @@ module ariane_testharness #(
     logic        dmi_resp_valid;
     logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request     ;
     logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive     ;
+    logic  [ariane_soc::NB_PERIPHERALS-1 :0]  redirection_idle;
     logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i;
     logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o;
     logic [31:0] jtag_key; 
@@ -479,6 +480,7 @@ module ariane_testharness #(
 	.access_ctrl_i( access_ctrl), 
     .MoP_request(MoP_request),
     .MoP_receive(MoP_receive),
+    .redirection_idle(redirection_idle),
     .valid_i(valid_i),
     .valid_o(valid_o), 
         .start_addr_i ({
@@ -614,6 +616,7 @@ module ariane_testharness #(
       .testCycle         ( testCycle), 
       .MoP_request          (MoP_request),
       .MoP_receive          (MoP_receive),
+      .redirection_idle     (redirection_idle),
       .valid_i          (valid_i),
       .valid_o          (valid_o),
       .spi_ss            ( )

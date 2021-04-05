@@ -69,10 +69,12 @@ module axi_address_decoder_AR
 
     output logic                                                        error_req_o,
     input  logic                                                        error_gnt_i,
-    output logic                                                        sample_ardata_info_o,
-    input  logic [LOG_N_INIT-1:0]                                source_r,
-    input  logic [LOG_N_INIT-1:0]                                target_r,
-    input  logic                                                 redirect_valid_r
+    // input  logic [N_REGION-1:0][N_INIT_PORT-1:0]                      match_region_int,
+    input logic [N_INIT_PORT-1:0][LOG_N_INIT-1:0]                change_q,
+    output logic                                                        sample_ardata_info_o
+    // input  logic [LOG_N_INIT-1:0]                                source_r,
+    // input  logic [LOG_N_INIT-1:0]                                target_r,
+    // input  logic                                                 redirect_valid_r
 );
 
   logic [N_INIT_PORT-1:0]                               match_region;
@@ -84,28 +86,43 @@ module axi_address_decoder_AR
   logic                                                 arready_int;
   logic [N_INIT_PORT-1:0]                               arvalid_int;
 
-  genvar i,j;
+  // genvar i,j;
 
   enum logic    {OPERATIVE, ERROR} CS, NS;
 
-
-  generate
+integer i, j;
+  
+always@(*)begin
+  
 
       // First calculate for each region where what slave ist matching
       // for(j=0;j<N_REGION;j++)
       // begin
       //      for(i=0;i<N_INIT_PORT;i++)
       //      begin
-      //         assign match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (araddr_i >= START_ADDR_i[j][i]) && (araddr_i <= END_ADDR_i[j][i]) : 1'b0;
+      //          match_region_int[j][i]  =  (enable_region_i[j][i] == 1'b1 ) ? (araddr_i >= START_ADDR_i[j][i]) && (araddr_i <= END_ADDR_i[j][i]) : 1'b0;
       //      end
       // end
-
+      for(integer j=0;j<N_REGION;j++)
+      begin: for1
+          for(integer i=0;i<N_INIT_PORT;i++)
+          begin:for2
+              match_region_int[j][i] = 0;
+          end
+          for(integer i=0;i<N_INIT_PORT;i++)
+          begin:for3
+            if((araddr_i >= START_ADDR_i[j][i]) && (araddr_i <= END_ADDR_i[j][i]) && (enable_region_i[j][i] == 1'b1 ) )begin
+              match_region_int[j][change_q[i]] = 1; 
+            end
+          end
+    end
+// generate
       // transpose the match_region_int bidimensional array
       for(j=0;j<N_INIT_PORT;j++)
       begin
            for(i=0;i<N_REGION;i++)
            begin
-             assign match_region_rev[j][i] = match_region_int[i][j];
+              match_region_rev[j][i] = match_region_int[i][j];
            end
       end
 
@@ -113,36 +130,37 @@ module axi_address_decoder_AR
       //Or reduction
       for(i=0;i<N_INIT_PORT;i++)
       begin
-        assign match_region[i]  =  | match_region_rev[i]; //把全部region or 起來 
+         match_region[i]  =  | match_region_rev[i]; //把全部region or 起來 
         // ==> every bit or each other
       end
 
-      assign match_region_masked[N_INIT_PORT-1:0] = match_region & connectivity_map_i;
+       match_region_masked[N_INIT_PORT-1:0] = match_region & connectivity_map_i;
 
       // if there are no moatches, then assert an error
-      assign match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
-  endgenerate
+       match_region_masked[N_INIT_PORT] = ~(|match_region_masked[N_INIT_PORT-1:0]);
+end
+  // endgenerate
 
-  swap
-#(
-  .ADDR_WIDTH(ADDR_WIDTH),
-  .N_INIT_PORT(N_INIT_PORT),
-  .N_REGION(N_REGION),
-  .LOG_N_INIT(LOG_N_INIT)
-)
-i_swap_n
-(
-  .clk(clk),
-  .rst_n(rst_n),
-  .START_ADDR_i(START_ADDR_i),
-  .END_ADDR_i(END_ADDR_i),
-  .enable_region_i(enable_region_i),
-  .awaddr_i(araddr_i),
-  .select(redirect_valid_r),
-  .source(source_r),
-  .target(target_r),
-  .match_region_int_o(match_region_int)
-);
+//   swap
+// #(
+//   .ADDR_WIDTH(ADDR_WIDTH),
+//   .N_INIT_PORT(N_INIT_PORT),
+//   .N_REGION(N_REGION),
+//   .LOG_N_INIT(LOG_N_INIT)
+// )
+// i_swap_n
+// (
+//   .clk(clk),
+//   .rst_n(rst_n),
+//   .START_ADDR_i(START_ADDR_i),
+//   .END_ADDR_i(END_ADDR_i),
+//   .enable_region_i(enable_region_i),
+//   .awaddr_i(araddr_i),
+//   .select(redirect_valid_r),
+//   .source(source_r),
+//   .target(target_r),
+//   .match_region_int_o(match_region_int)
+// );
 
 
  always_comb

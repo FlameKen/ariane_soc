@@ -31,6 +31,7 @@ module axi_node_intf_wrap #(
     input logic [NB_SLAVE-1:0][NB_MASTER-1:0][NB_PRIV_LVL-1:0] access_ctrl_i,  
     input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
     input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
+    input logic  [ariane_soc::NB_PERIPHERALS-1 :0]  redirection_idle,
     input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
     output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
     // Memory map
@@ -382,6 +383,7 @@ module axi_node_intf_wrap #(
     .MoP_receive(MoP_receive),
     .valid_i(valid_i),
     .valid_o(valid_o), 
+    .redirection_idle(redirection_idle),
 
     .cfg_START_ADDR_i       ( s_start_addr       ),
     .cfg_END_ADDR_i         ( s_end_addr         ),

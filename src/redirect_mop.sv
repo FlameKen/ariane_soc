@@ -6,6 +6,7 @@ module redirect_mop(
   input  logic [ariane_soc::LOG_N_INIT-1 : 0]     source,
   input logic                     override,
   input  logic                    valid_i,
+//   input logic [ariane_soc::NB_PERIPHERALS-1 :0] idle,
   output logic [ariane_soc::LOG_N_INIT-1:0]   request,
   output logic [ariane_soc::LOG_N_INIT-1:0]   receive,
   output  logic                   valid_o
@@ -32,7 +33,7 @@ logic redirected;
     
 end
 always @(posedge clk_i)begin
-    if(override && valid_i == 0 && redirected == 0)
+    if(override && valid_i == 0 && redirected == 0 )
         valid_o  <= 1;
 
     else 

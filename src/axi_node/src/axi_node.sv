@@ -210,6 +210,7 @@ module axi_node #(
 `endif
    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_request,
    input logic [ariane_soc::LOG_N_INIT-1:0]              MoP_receive,
+   input logic  [ariane_soc::NB_PERIPHERALS-1 :0]  redirection_idle,
    input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_i,
    output logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
    //Initial Memory map
@@ -261,6 +262,7 @@ logic [ariane_soc::NB_PERIPHERALS-1 :0]        s_valid_o[N_SLAVE_PORT-1:0];
  logic [N_SLAVE_PORT-1:0][ariane_soc::LOG_N_INIT-1:0]              MoP_request_array;
  logic [N_SLAVE_PORT-1:0][ariane_soc::LOG_N_INIT-1:0]              MoP_receive_array;
 
+
 assign valid_o = s_valid_o.sum();
 assign MoP_receive_array[0] = MoP_receive;
 assign MoP_receive_array[1] = MoP_receive;
@@ -269,8 +271,13 @@ assign MoP_request_array[1] = MoP_request;
 //to let the adress decoder at other slaves remain intact
 assign MoP_receive_array[2] = 5;
 assign MoP_request_array[2] = 5;
-generate
+logic        [N_SLAVE_PORT-1:0]                    valid_r;
+logic [N_SLAVE_PORT-1:0][N_MASTER_PORT-1:0][LOG_N_INIT-1:0]                change_q;
 
+generate
+for (i = 0; i < N_SLAVE_PORT; i++)begin: _setting
+   assign valid_r[i] = |s_valid_o[i][ariane_soc::NB_PERIPHERALS-1 :0];
+end
 // 2D REQ AND GRANT MATRIX REVERSING (TRANSPOSE)
 for(i=0;i<N_MASTER_PORT;i++)
 begin : _REVERSING_VALID_READY_MASTER
@@ -291,6 +298,7 @@ begin : _REVERSING_VALID_READY_MASTER
       
     end
 end
+
 
 for(i=0; i<N_MASTER_PORT; i++)
 begin : _REQ_BLOCK_GEN
@@ -405,6 +413,34 @@ begin : _REQ_BLOCK_GEN
 end
 
 for (i = 0; i < N_SLAVE_PORT; i++) begin : _RESP_BLOCK_GEN
+  swap
+#(
+  .ADDR_WIDTH(AXI_ADDRESS_W),
+  .AXI_DATA_W(AXI_DATA_W),
+  .N_INIT_PORT(N_MASTER_PORT),
+  .N_SLAVE_PORT(N_SLAVE_PORT),
+  .N_REGION(N_REGION),
+  .LOG_N_INIT(LOG_N_INIT)
+)
+i_swap_n
+(
+  .clk(clk),
+  .rst_n(rst_n),
+  .START_ADDR_i(START_ADDR),
+  .END_ADDR_i(END_ADDR),
+  .enable_region_i(valid_rule),
+  .redirection_idle(redirection_idle),
+  .awaddr_i(slave_awaddr_i[i]),
+  .wdata_i(slave_wdata_i[i]),
+  .wvalid_i(slave_wvalid_i[i]),
+  .araddr_i( slave_araddr_i[i]),
+  .valid_i(valid_i),
+  .valid_o(s_valid_o[i]),
+  .select(valid_r[i]),
+  .source(MoP_request_array[i]),
+  .target(MoP_receive_array[i]),
+  .change_q(change_q[i])
+);
 axi_response_block
 #(
     .AXI_ADDRESS_W  (AXI_ADDRESS_W ),
@@ -495,6 +531,7 @@ RESP_BLOCK
    .MoP_receive(MoP_receive_array[i]),
    .valid_i(valid_i),
    .valid_o(s_valid_o[i]), 
+   .change_q(change_q[i]),
 
    // FROM CFG REGS
    .START_ADDR_i       ( START_ADDR               ),
@@ -504,7 +541,6 @@ RESP_BLOCK
 );
 end
 endgenerate
-
 
 `ifdef USE_CFG_BLOCK
   `ifdef USE_AXI_LITE

@@ -154,7 +154,7 @@ logic t_o_valid ;
 logic t_o_ready ;
 logic alarm;
 logic ext_wr;
-logic [10:0] ext_data_in;
+logic [11:0] ext_data_in;
 logic [19:0] ext_act_in;
 logic [2:0] ext_addr;
 logic [17:0] re_ext_data_in;
@@ -300,7 +300,38 @@ always @(*)
                 external_bus_io.rdata = 32'b0;
         endcase
     end // always @ (*)
-
+newmop_5 mop(   
+                .clk(clk_i),
+                .reset(~rst_ni),
+                .i_addr(t_i_addr),
+                .i_write(t_i_write),
+                .i_rdata(t_i_rdata),
+                .i_wdata(t_i_wdata),
+                .i_wstrb(t_i_wstrb),
+                .i_error(t_i_error),
+                .i_valid(t_i_valid),
+                .i_ready(t_i_ready),
+                .o_addr(t_o_addr),
+                .o_write(t_o_write),
+                .o_rdata(t_o_rdata),
+                .o_wdata(t_o_wdata),
+                .o_valid(t_o_valid),
+                .o_wstrb(t_o_wstrb),
+                .o_error(t_o_error),
+                .o_ready(t_o_ready),
+                .alarm(alarm),
+                .ext_wr(ext_wr),
+                .ext_data_in(ext_data_in),
+                .ext_act_in(ext_act_in),
+                .ext_addr(ext_addr),
+                .re_ext_wr(re_ext_wr),
+                .re_ext_data_in(re_ext_data_in),
+                .re_ext_addr(re_ext_addr),
+                .redirection(override),
+                .source(source),
+                .target(target),
+                .idle(mop_bus_io.idle_IP)
+            );
 load_instruction load(
             .clk_i(clk_i),
             .rst_ni(rst_ni),
