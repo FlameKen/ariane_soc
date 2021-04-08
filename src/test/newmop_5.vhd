@@ -36,7 +36,7 @@ entity newmop_5 is
         ext_addr : in unsigned(2 downto 0);
         re_ext_wr  : in std_logic;
         re_ext_data_in : in std_logic_vector(DW3-1 downto 0);
-        re_ext_addr : in unsigned(1 downto 0);
+        re_ext_addr : in unsigned(2 downto 0);
         redirection   : out std_logic;
         source          : out unsigned (3 downto 0);
         target          : out unsigned(3 downto 0);
@@ -185,7 +185,7 @@ architecture behavior of newmop_5 is
     signal red_rw_select : std_logic;
     -- pending action
     signal redirection_output : std_logic_vector(DW3 - 1 downto 0);
-    signal now_red, red_address,next_red : unsigned(1 downto 0); 
+    signal now_red, red_address,next_red : unsigned(2 downto 0); 
     -- signal source, target : unsigned (3 downto 0);
     begin
 
@@ -645,10 +645,14 @@ architecture behavior of newmop_5 is
         grm : generic_red_mem
         generic map (initmem => 
         (
-            "011000010001011110",
-            "101001101100100000",
-            "111011000100001001",
-            "110000110000000011"
+            "0110000100011011110",
+            "1010011011001100000",
+            "1110110001000011001",
+            "1100001100000001011",
+            "0110000100010111110",
+            "1010011011001000010",
+            "1110110001000010011",
+            "1100001100000000111"
         )
         ) 
         port map (
@@ -694,7 +698,7 @@ architecture behavior of newmop_5 is
             end if;
         end process;
 
-        next_red            <= unsigned (redirection_output(17 downto 16));   
+        next_red            <= unsigned (redirection_output(18 downto 16));   
         red_mode            <= redirection_output(15 downto 14);   
         sel_redA             <= redirection_output(13 downto 12);
         sel_redB             <= redirection_output(11 downto 10);

@@ -62,9 +62,9 @@ logic ext_wr;
 logic [11:0] ext_data_in;
 logic [19:0] ext_act_in;
 logic [2:0] ext_addr;
-logic [17:0] re_ext_data_in;
+logic [18:0] re_ext_data_in;
 logic re_ext_wr;
-logic [1:0] re_ext_addr;
+logic [2:0] re_ext_addr;
 logic [3:0] source;
 logic [3:0] target;
 ////////////////////////////////////////////////////////////////////////////
@@ -73,12 +73,13 @@ logic [3:0] target;
 logic override;
 logic override_update;
 ///////////////////////////////////////////////////////////////////////////
-
+assign source = 4'h5;
+assign target = 4'he;
 assign external_bus_io.ready = t_o_ready;
 // assign external_bus_io.error = t_o_error;
 assign external_bus_io.error = override_update;
 assign external_bus_io.rdata = t_o_rdata;
-
+// assign mop_bus_io.override_out = override;
 assign t_i_addr = external_bus_io.addr;
 assign t_i_write = external_bus_io.write;
 // assign t_i_rdata = t_i_rdata;
@@ -93,61 +94,65 @@ redirect_mop r_mop(
     .rst_ni(rst_ni),
     .target({1'b0,target}),
     .source({1'b0,source}),
-    .override(override|override_update),
-    // .idle(mop_bus_io.idle),
+    // .override(override|override_update),
+    .override(mop_bus_io.override_out),
     .valid_i(mop_bus_io.valid_i),
     .valid_o(mop_bus_io.valid_o),
     .request(mop_bus_io.request),
     .receive(mop_bus_io.receive)
 );
-newmop_5 mop(   
-                .clk(clk_i),
-                .reset(~rst_ni),
-                .i_addr(t_i_addr),
-                .i_write(t_i_write),
-                .i_rdata(t_i_rdata),
-                .i_wdata(t_i_wdata),
-                .i_wstrb(t_i_wstrb),
-                .i_error(t_i_error),
-                .i_valid(t_i_valid),
-                .i_ready(t_i_ready),
-                .o_addr(t_o_addr),
-                .o_write(t_o_write),
-                .o_rdata(t_o_rdata),
-                .o_wdata(t_o_wdata),
-                .o_valid(t_o_valid),
-                .o_wstrb(t_o_wstrb),
-                .o_error(t_o_error),
-                .o_ready(t_o_ready),
-                .alarm(alarm),
-                .ext_wr(ext_wr),
-                .ext_data_in(ext_data_in),
-                .ext_act_in(ext_act_in),
-                .ext_addr(ext_addr),
-                .re_ext_wr(re_ext_wr),
-                .re_ext_data_in(re_ext_data_in),
-                .re_ext_addr(re_ext_addr),
-                .redirection(override),
-                .source(source),
-                .target(target),
-                .idle(mop_bus_io.idle_IP)
-            );
+remop_redirec mop(   
+    .clk                (   clk_i                   ),
+    .reset              (   ~rst_ni                 ),
+    .i_addr             (   t_i_addr                ),
+    .i_write            (   t_i_write               ),
+    .i_rdata            (   t_i_rdata               ),
+    .i_wdata            (   t_i_wdata               ),
+    .i_wstrb            (   t_i_wstrb               ),
+    .i_error            (   t_i_error               ),
+    .i_valid            (   t_i_valid               ),
+    .i_ready            (   t_i_ready               ),
+    .o_addr             (   t_o_addr                ),
+    .o_write            (   t_o_write               ),
+    .o_rdata            (   t_o_rdata               ),
+    .o_wdata            (   t_o_wdata               ),
+    .o_valid            (   t_o_valid               ),
+    .o_wstrb            (   t_o_wstrb               ),
+    .o_error            (   t_o_error               ),
+    .o_ready            (   t_o_ready               ),
+    .alarm              (   alarm                   ),
+    .ext_wr             (   ext_wr                  ),
+    .ext_data_in        (   {1'b0,ext_data_in}      ),
+    .ext_act_in         (   ext_act_in              ),
+    .ext_addr           (   {1'b0,ext_addr}         ),
+    .re_ext_wr          (   re_ext_wr               ),
+    .re_ext_data_in     (   re_ext_data_in          ),
+    .re_ext_addr        (   re_ext_addr             ),
+    .redirection        (   override                ),
+    // .source             (   source                  ),
+    // .target             (   target                  ),
+    .override_in        (   mop_bus_io.override_in  ),
+    .override_dataout   (   mop_bus_io.re_data_out  ),
+    .override_out       (   mop_bus_io.override_out ),
+    .override_datain    (   mop_bus_io.re_data_in   ),
+    .idle               (   mop_bus_io.idle_IP      )
+);
 
 ///////////////////////////////////////////////////////////////////////////
 load_instruction load(
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .instrut_value(mop_bus_io.instrut_value),
-            .load_ctrl(mop_bus_io.load_ctrl),
-            .id(ariane_soc::AES),
-            .ext_wr(ext_wr),
-            .re_ext_wr(re_ext_wr),
-            .ext_data_in(ext_data_in),
-            .ext_act_in(ext_act_in),
-            .re_ext_data_in(re_ext_data_in),
-            .ext_addr(ext_addr),
-            .re_ext_addr(re_ext_addr),
-            .change(mop_bus_io.change)
+            .clk_i              (   clk_i                       ),
+            .rst_ni             (   rst_ni                      ),
+            .instrut_value      (   mop_bus_io.instrut_value    ),
+            .load_ctrl          (   mop_bus_io.load_ctrl        ),
+            .id                 (   ariane_soc::AES             ),
+            .ext_wr             (   ext_wr                      ),
+            .re_ext_wr          (   re_ext_wr                   ),
+            .ext_data_in        (   ext_data_in                 ),
+            .ext_act_in         (   ext_act_in                  ),
+            .re_ext_data_in     (   re_ext_data_in              ),
+            .ext_addr           (   ext_addr                    ),
+            .re_ext_addr        (   re_ext_addr                 ),
+            .change             (   mop_bus_io.change           )
 );
 // Implement APB I/O map to AES interface
 always @(posedge clk_i)
@@ -158,7 +163,6 @@ always @(posedge clk_i)
                 p_c[0] <= 0;
                 p_c[1] <= 0;
                 p_c[2] <= 0;
-                // clock <=0;
                 p_c[3] <= 0;
                 state[0] <= 0;
                 state[1] <= 0;
@@ -289,27 +293,4 @@ aes_192_sed aes(
             .out_valid(ct_valid)
         );
 
-// newmop_4 mop(   
-//                 .clk(clk_i),
-//                 .reset(rst_ni),
-//                 .i_addr(t_i_addr),
-//                 .i_write(t_i_write),
-//                 .i_rdata(t_i_rdata),
-//                 .i_wdata(t_i_wdata),
-//                 .i_wstrb(t_i_wstrb),
-//                 .i_error(t_i_error),
-//                 .i_valid(t_i_valid),
-//                 .i_ready(t_i_ready),
-//                 .o_addr(t_o_addr),
-//                 .o_write(t_o_write),
-//                 .o_rdata(t_o_rdata),
-//                 .o_wdata(t_o_wdata),
-//                 .o_valid(t_o_valid),
-//                 .o_ready(t_o_ready),
-//                 .alarm(alarm),
-//                 .ext_wr(ext_wr),
-//                 .ext_data_in(ext_data_in),
-//                 .ext_act_in(ext_act_in),
-//                 .ext_addr(ext_addr)
-//             );
 endmodule

@@ -6,7 +6,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.instr_pkg2.all;
 
-entity newmop_5 is
+entity remop_redirec is
     port(
         clk     : in std_logic;
         reset   : in std_logic;
@@ -30,22 +30,30 @@ entity newmop_5 is
 
         alarm   : out std_logic;
 
-        ext_wr  : in std_logic;
-        ext_data_in : in std_logic_vector(DW-1 downto 0);
-        ext_act_in : in std_logic_vector(DW2-1 downto 0);
-        ext_addr : in unsigned(2 downto 0);
-        re_ext_wr  : in std_logic;
-        re_ext_data_in : in std_logic_vector(DW3-1 downto 0);
-        re_ext_addr : in unsigned(1 downto 0);
-        redirection   : out std_logic;
+
+
+
+
+        override_in     : in std_logic;
+        override_out    : out std_logic;
+        override_dataout: out std_logic_vector(32 downto 0);
+        override_datain : in std_logic_vector(32 downto 0); 
+        ext_wr          : in std_logic;
+        ext_data_in     : in std_logic_vector(DW-1 downto 0);
+        ext_act_in      : in std_logic_vector(DW2-1 downto 0);
+        ext_addr        : in unsigned(AL-1 downto 0);
+        re_ext_wr       : in std_logic;
+        re_ext_data_in  : in std_logic_vector(DW3-1 downto 0);
+        re_ext_addr     : in unsigned(2 downto 0);
+        redirection     : out std_logic;
         source          : out unsigned (3 downto 0);
         target          : out unsigned(3 downto 0);
         idle            : out std_logic
 
     );
-end entity newmop_5;
+end entity remop_redirec;
 
-architecture behavior of newmop_5 is
+architecture behavior of remop_redirec is
     component gencount is
         generic (COUNT_WIDTH : integer := 32);
         port(
@@ -103,7 +111,7 @@ architecture behavior of newmop_5 is
             rdy		:	out std_logic
         );
     end component;
-    signal fc, fc_address,next_fc : unsigned(2 downto 0); 
+    signal fc, fc_address,next_fc : unsigned(AL-1 downto 0); 
     signal current_instr : std_logic_vector(DW-1 downto 0);
     signal sel_nextA : std_logic_vector(1 downto 0) := "00";
     signal sel_nextB : std_logic_vector(2 downto 0) := "000";
@@ -122,13 +130,7 @@ architecture behavior of newmop_5 is
     signal r_i_write : std_logic;
     signal c0n, r_c0n : std_logic;
     signal comp0 : std_logic_vector(3 downto 0);
-    signal next_compA, next_compb : std_logic_vector(31 downto 0);
-    -- second Comp next side
-    signal sel2_nextA, sel2_nextB : std_logic_vector(1 downto 0) := "00";
-    signal next2_compA, next2_compb : std_logic_vector(31 downto 0);
-    signal comp2 : std_logic_vector(3 downto 0);
-    signal c2n : std_logic;
-    signal comp2_mode : std_logic_vector(1 downto 0) := "00";
+    signal next_compA, next_compB : std_logic_vector(31 downto 0);
     --- ASSERTION SIGNALS
     -- comp i/o
     signal ac0_compA    : std_logic_vector(31 downto 0);
@@ -185,23 +187,40 @@ architecture behavior of newmop_5 is
     signal red_rw_select : std_logic;
     -- pending action
     signal redirection_output : std_logic_vector(DW3 - 1 downto 0);
-    signal now_red, red_address,next_red : unsigned(1 downto 0); 
+    signal now_red, red_address,next_red : unsigned(2 downto 0); 
     -- signal source, target : unsigned (3 downto 0);
+    signal store_value : stored := (others=>(others=>'0'));
+    signal stored_counter : unsigned(AL -1 downto 0);
+    signal stored_counter2 : unsigned(AL -1 downto 0);
+    signal rdata_override : std_logic;
+    signal wdata_override : std_logic;
+    signal save_counter : unsigned(AL -1 downto 0);
+    signal save_value : stored := (others=>(others=>'0'));
+    signal redirection_control : std_logic := '0';
+    signal intermediate_o_addr : std_logic_vector(31 downto 0);
+    signal intermediate_o_wdata : std_logic_vector(31 downto 0);
+    signal intermediate_o_rdata : std_logic_vector(31 downto 0);
+    signal intermediate_o_valid : std_logic;
+    signal intermediate_o_write : std_logic;
+    signal intermediate_o_ready : std_logic;
+    signal check                : std_logic;
+    signal spare_00,spare_01,spare_02,spare_03 : std_logic_vector(31 downto 0) := (others=>'0'); 
+    signal start_to_redirect :std_logic;
     begin
 
-        o_addr   <= i_addr;
-        o_write  <= i_write;
+        o_addr   <= next_compA when (rdata_override = '1' or wdata_override = '1') else i_addr;
+        o_write  <= '1' when  wdata_override = '1'  else i_write;
         
-        o_rdata  <= r00 when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(3 downto 2) = "10" else i_rdata;
+        o_rdata  <= red00 when rdata_override = '1' else i_rdata;
         
-        o_wdata  <= r00 when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(3 downto 2) = "01" else i_wdata;
+        o_wdata  <= red00 when wdata_override='1'  else i_wdata;
 
         o_wstrb  <= i_wstrb;
         o_error  <= i_error;
 
-        o_valid  <= '0' when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(5 downto 4) = "10" else i_valid;
+        o_valid  <= '1' when (rdata_override = '1' or wdata_override='1')  else i_valid;
 
-        o_ready  <= '1' when ac0 = '1' and ac0_event = '1' and ac0_rw_event = '1' and pending_action(7 downto 6) = REPL and pending_action(5 downto 4) = "10" else i_ready;
+        o_ready  <= '1' when rdata_override = '1' else i_ready;
 
         fc_address <= ext_addr when ext_wr = '1' else fc;
         red_address <= re_ext_addr when re_ext_wr = '1' else now_red;
@@ -211,15 +230,6 @@ architecture behavior of newmop_5 is
         next_comp : comp
         generic map(DATA_SIZE => 32)
         port map (a => unsigned(next_compA), b => unsigned(next_compB), output => comp0);
-
-        -- mux control
-        with sel_nextA select
-            next_compA <=   r_i_addr when "00",
-                            r_i_rdata when "01",
-                            r_i_wdata when "10",
-                            (others => '0') when others;
-        
-        -- mux control
         with sel_nextB select
             next_compB <=   r00 when "000",
                             r01 when "001",
@@ -231,25 +241,6 @@ architecture behavior of newmop_5 is
                             r011 when "111",
                             (others => '0') when others;
               
-        -- next_comp2 : comp
-        -- generic map(DATA_SIZE => 32)
-        -- port map (a => unsigned(next2_compA), b => unsigned(next2_compB), output => comp2);
-
-        -- -- mux control
-        -- with sel2_nextA select
-        --     next2_compA <=  r_i_addr when "00",
-        --                     r_i_rdata when "01",
-        --                     r_i_wdata when "10",
-        --                     std_logic_vector(counter) when "11",
-        --                     (others => '0') when others;
-        
-        -- -- mux control
-        -- with sel2_nextB select
-        --     next2_compB <=  r00 when "00",
-        --                     r01 when "01",
-        --                     r10 when "10",
-        --                     r11 when "11",
-        --                     (others => '0') when others;
 
         with comp_mode select
             c0n <=  comp0(3) when "00", 
@@ -257,23 +248,85 @@ architecture behavior of newmop_5 is
                     comp0(1) when "10", 
                     comp0(0) when "11", 
                     '0' when others;
-        
-        -- with comp2_mode select
-        --     c2n <=  comp2(3) when "00", 
-        --             comp2(2) when "01", 
-        --             comp2(1) when "10", 
-        --             comp2(0) when "11", 
-        --             '0' when others;
-                        
-        with transact_select select
-            transact_event <=   r_i_valid when '0',
-                                r_i_ready when '1',
-                                '0' when others;
 
-        with rw_select select
-            rw_event <=     r_i_write when '0',
-                            not r_i_write when '1',
-                            '0' when others;
+        process(clk, reset)
+        begin
+            if(wdata_override='1')then
+                intermediate_o_wdata <= red00;
+                intermediate_o_rdata <= i_rdata;
+                intermediate_o_write <= '1';
+                intermediate_o_ready <= i_ready;
+            else 
+                intermediate_o_wdata <= i_wdata;
+                intermediate_o_rdata <= red00;
+                intermediate_o_write <= i_write;
+                intermediate_o_ready <= '1';
+            end if;
+            -- copy for o_addr
+            intermediate_o_addr <= red01;    
+            intermediate_o_valid <= '1';
+
+            if (redirection_control = '1')then
+                case sel_nextA is 
+                when "00" =>
+                    next_compA <= intermediate_o_addr;
+                when "01" =>
+                next_compA <= intermediate_o_rdata;
+                when "10" =>
+                next_compA <= intermediate_o_wdata;
+                when others =>
+                next_compA <= (others => '0');    
+                end case;
+
+                case (transact_select) is 
+                when '0' =>
+                transact_event <=   intermediate_o_valid;
+                when '1'=>
+                transact_event <=   intermediate_o_ready;
+                when others =>
+                transact_event <= '0';
+                end case;
+
+                case (rw_select) is 
+                when '0' =>
+                rw_event <=     intermediate_o_write;
+                when '1'=>
+                rw_event <=     not intermediate_o_write;
+                when others =>
+                rw_event <= '0';
+                end case;
+            else 
+                case (sel_nextA) is 
+                when "00" =>
+                next_compA <= r_i_addr;
+                when "01" =>
+                next_compA <= r_i_rdata;
+                when "10" =>
+                next_compA <= r_i_wdata;
+                when others =>
+                next_compA <= (others => '0');   
+                end case;
+
+                case (transact_select) is 
+                when '0' =>
+                transact_event <=   r_i_valid;
+                when '1'=>
+                transact_event <=   r_i_ready;
+                when others =>
+                transact_event <= '0';
+                end case;
+
+                case (rw_select) is 
+                when '0' =>
+                rw_event <=     r_i_write;
+                when '1'=>
+                rw_event <=     not r_i_write;
+                when others =>
+                rw_event <= '0';
+                end case;
+
+            end if;
+        end process;
 
         process(clk, reset)
             variable delay : std_logic;
@@ -286,11 +339,15 @@ architecture behavior of newmop_5 is
                     
             if (reset = '1') then
                 fc <= (others=> '0');
-                -- r00 <= x"00000010"; --(others => '0');
-                -- r01 <= x"00000020"; --(others => '0');
-                -- r10 <= x"00000000"; --(others => '0');
-                -- r11 <= x"00000040"; --(others => '0');
                 delay := '0';
+                stored_counter <= (others=>'0');
+                wdata_override <= '0';
+                rdata_override <= '0';
+                check <= '0';
+                red00 <= x"00000AAA"; --(others => '0');
+                red01 <= x"00000010"; --(others => '0');
+                red10 <= x"000000FF"; --(others => '0');
+                red11 <= x"00000004"; --(others => '0');
             elsif(rising_edge(clk)) then
                 if (i_valid = '1') then
                     r_i_addr  <= i_addr;
@@ -300,39 +357,79 @@ architecture behavior of newmop_5 is
                 cnt_reset <= '0';
                 r_i_valid <= i_valid;
                 r_i_ready <= i_ready;
+                -- red00<=red00;
+                red10 <= red10;
+                red11 <= red11;
 
                 if (i_ready = '1') then
                     r_i_rdata <= i_rdata;
                 end if;
+                if (redirection_control = '1')then
+                    -- get the right address
+                    red01 <= next_compB;
+                    red00 <= save_value(to_integer(stored_counter))(31 downto 0) ;
+                    if(c0n = '1' and check = '0')then
+                        check <= '1';
+                        if(save_value(to_integer(stored_counter))(32) = '1')then
+                            wdata_override <= '1';
+                            rdata_override <='0';
+                        else
+                            rdata_override <='1';
+                            wdata_override <= '0';
+                        end if;
+                        fc <= next_fc;
+                        stored_counter <= unsigned(next_fc);
+                    else 
+                        rdata_override <='0';
+                        check <= '0';
+                        wdata_override <= '0';
+                    end if;
+                    
+                    -- the 32th bit is to see it's a write or read transaction
+                    
+                    if(stored_counter = 2**AL - 3)then
+                        redirection_control <= '0';
+                    end if;
+                else 
+                        red01 <= r_i_addr;
+                        rdata_override <='0';
+                        wdata_override <= '0';
+                end if;
 
                 if (delay = '1') then
                     delay := '0'; -- delay before making a decision as it takes a cycle to get the next set of control signals
-                elsif (c0n = '1' and transact_event = '1') then --and c2n = '1' and transact_event = '1') then
+                elsif (c0n = '1' and transact_event = '1' and override_in = '0' and redirection_control = '0') then --and c2n = '1' and transact_event = '1') then
                 -- if (r_c0n = '1' and transact_event = '1') then
                     if(transact_select = '0') then
                         if (rw_event = '1') then
                             -- report "SAT MASTER REQ.";
                             fc <= next_fc;
+                            stored_counter <= stored_counter + 1;
                             delay := '1';
+                            -- store the previous transactions
+                            if(rw_select = '1')then
+                                store_value(to_integer(stored_counter)) <= ('0' & r_i_rdata);
+                            else 
+                                store_value(to_integer(stored_counter)) <= ('1' & r_i_wdata);
+                            end if;
                             cnt_reset <= '1';
                         end if;
                     else
                         -- report "SAT SLAVE RESP.";
                         fc <= next_fc;
+                        stored_counter <= stored_counter + 1;
                         delay := '1';
                         cnt_reset <= '1';
                     end if;
+                elsif (override_in = '1')then
+                    -- accept redirected transactions
+                    redirection_control <= '1';
+                    delay := '1';
                 end if;
             end if;
         end process;
         
-        -- next_fc <= unsigned(current_instr(10 downto 8));
-        -- comp_mode       <= current_instr(7 downto 6);
-        -- sel_nextA       <= current_instr(5 downto 4);
-        -- sel_nextB       <= current_instr(3 downto 2);
-        -- transact_select <= current_instr(1);
-        -- rw_select       <= current_instr(0);
-        next_fc <= unsigned(current_instr(11 downto 9));
+        next_fc <= unsigned(current_instr(12 downto 9));
         comp_mode       <= current_instr(8 downto 7);
         sel_nextA       <= current_instr(6 downto 5);
         sel_nextB       <= current_instr(4 downto 2);
@@ -345,14 +442,22 @@ architecture behavior of newmop_5 is
         gfm : generic_flow_mem
         generic map (initmem => 
         (
-            "001100010000",
-            "010100010100",
-            "011100011000",
-            "100100011100",
-            "101101000100", -- set start  = 1
-            "110100100101",--read start = 1
-            "111101000000",-- write start  = 0
-            "000100001001"--done = 1 ->finish
+            "0001100010000", -- key selection
+            "0010100010100", -- write plain text
+            "0011100000000", -- write plain text
+            "0100100000000", -- write plain text
+            "0101100000000", -- write plain text
+            "0110100011000", -- write state text
+            "0111100000000", -- write state text
+            "1000100000000", -- write state text
+            "1001100000000", -- write state text
+            "1010100011100", -- set start = 0
+            "1011100011100", -- set start  = 1
+            "1100100011101", --read start = 1
+            "1101100011100",-- write start  = 0
+            "0000100001001",--done = 1 ->finish
+            "0001100010000",
+            "0010100010100"
         )
         ) 
         port map (
@@ -436,17 +541,18 @@ architecture behavior of newmop_5 is
         rf_block : process(clk)
                 variable delay : std_logic;
             begin
-            
+
             if (reset = '1') then
+                delay := '0';
                 r00 <= x"00000000"; --(others => '0');
                 r01 <= x"00000001"; --(others => '0');
-                r10 <= x"0000403c"; --(others => '0');
+                r10 <= x"1010002c"; --(others => '0');
                 r11 <= x"000000AA"; --(others => '0');
-                r000 <= x"00004080";
-                r001 <= x"00004004";
-                r010 <= x"00004040";
-                r011 <= x"00004000";
-                delay := '0';
+                r000 <= x"10100080";
+                r001 <= x"10100010";
+                r010 <= x"1010004C";
+                r011 <= x"10100000";
+                
             elsif (rising_edge(clk)) then
                 r00 <= r00;
                 r01 <= r01;
@@ -459,7 +565,7 @@ architecture behavior of newmop_5 is
 
                 -- generally speaking, only catch the beginning (if working on request)
                 -- or catch the end, if working on response
-                if (ac0_event = '1' and ac0_rw_event = '1') then -- and delay = '0') then
+                if (ac0_event = '1' and ac0_rw_event = '1' and redirection_control = '0') then -- and delay = '0') then
                     report "yes";
                     if (rfA_wr = '1') then
                         report "SAVE A";
@@ -490,6 +596,19 @@ architecture behavior of newmop_5 is
                             when others =>
                         end case;
                     end if;
+                    delay := '1';
+                elsif (c0n = '1' and redirection_control = '1')then
+                    case rfA_dest is
+                        when SEL_r00 =>
+                            r00 <= rfA_in;
+                        when SEL_r01 =>
+                            r01 <= rfA_in;
+                        when SEL_r10 =>
+                            r10 <= rfA_in;
+                        when SEL_r11 =>
+                            r11 <= rfA_in;
+                        when others =>
+                    end case;
                     delay := '1';
                 else 
                     delay := '0';
@@ -536,7 +655,7 @@ architecture behavior of newmop_5 is
         rf_ext_sel <=   '1' when (((pending_action(7 downto 6) = STOR) and pending_action(0) = '1') or pending_action(7 downto 6) = STMV) else '0';
 
         with pending_action(5 downto 4) select
-            rf_extin <= i_addr when SEL_addr,
+            rf_extin <= std_logic_vector(unsigned(red01) - 4) when SEL_addr,
                         i_rdata when SEL_rdata,
                         i_wdata when SEL_wdata,
                         std_logic_vector(counter) when SEL_count,
@@ -565,14 +684,22 @@ architecture behavior of newmop_5 is
         gam : generic_act_mem
         generic map (initmem => 
         (
-            "10101100010000100101",
-            "10110110000010000000",
-            "10101100010000100101",
-            "11000011000000000011",
-            "00000000000000000000",
-            "00000000000000000000",
-            "00000000000000000000",
-            "00000000000000000000"
+            "10000000000000000000",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "11100000000000100001",
+            "10000000000000000000",
+            "10000000000000000000"
         )
         ) 
         port map (
@@ -593,17 +720,6 @@ architecture behavior of newmop_5 is
         ac0_rw_select       <= action_output(2);
         ac0_event_select    <= action_output(1 downto 0);
 
-        -- action		src	dest	
-        -- STOR	store	00	xxx	xx	?
-        -- STMV	store & move	01	xx	xx	xx
-        -- ALRM	alarm	10	-	-	-
-        -- REPL	replace	11	A	B	C
-                            
-        --             A	B	C
-        --         00	none	none	none
-        --         01	o_valid	o_wdata	o_addr
-        --         10	o_ready	o_rdata	-
-        --         11	-	-	-
 --------------redirection side--------------------------------------------------------
 
         redirect_comp0 : comp
@@ -637,18 +753,22 @@ architecture behavior of newmop_5 is
                             '0' when others;
         -- read-write control -- only care if legit transaction
         with red_rw_select select
-            red_rw_event <= i_write and i_valid when '0',
-                            (not i_write) and i_valid  when '1',
+            red_rw_event <= r_i_write and r_i_valid when '0',
+                            (not r_i_write) and r_i_valid  when '1',
                             '0' when others;
         
 
         grm : generic_red_mem
         generic map (initmem => 
         (
-            "011000010001011110",
-            "101001101100100000",
-            "111011000100001001",
-            "110000110000000011"
+            "0011010000001011110",
+            "1101001101100100000",
+            "1111011000100001001",
+            "1101000110000000011",
+            "0110100010001011110",
+            "1010011101100100000",
+            "1110111000100001001",
+            "1100001110000000011"
         )
         ) 
         port map (
@@ -666,23 +786,26 @@ architecture behavior of newmop_5 is
             if (reset = '1') then
                 now_red <= (others=> '0');
                 redirection <= '0';
-                red00 <= x"00000001"; --(others => '0');
-                red01 <= x"00000010"; --(others => '0');
-                red10 <= x"000000FF"; --(others => '0');
-                red11 <= x"00000004"; --(others => '0');
+                save_counter <= (others=>'1');
+                stored_counter2 <= (others=>'0');
+                override_dataout <= (others=>'0');
+                override_out <= '0';
+                start_to_redirect <= '0';
             elsif(rising_edge(clk)) then
-                red00 <= red00;
-                red01 <= red01;
-                red10 <= red10;
-                red11 <= red11;
+                -- override_out <= override_out;
+                -- override_dataout <= override_dataout;
+                save_counter <= save_counter;
+                start_to_redirect <= start_to_redirect;
+                stored_counter2 <= stored_counter2;
                 if (red = '1' and red_event = '1') then --and c2n = '1' and transact_event = '1') then
                     if(red_event_select = '0') then
                         if (red_rw_event = '1') then
-                            -- report "SAT MASTER REQ.";
                             now_red <= next_red;
                             redirection <= '1';
-                        else
-                            redirection <= '0';
+                            override_out <= '1';
+                            start_to_redirect <= '1';
+                        -- else
+                        --     redirection <= '0';
                         end if;
                     else
                         now_red <= next_red;
@@ -691,10 +814,22 @@ architecture behavior of newmop_5 is
                 else 
                     redirection <= '0';
                 end if;
+                if(start_to_redirect = '1')then
+                    stored_counter2 <= stored_counter2 + 1;
+                    if(stored_counter2 = 2**AL - 1)then
+                        override_out <= '0';
+                        start_to_redirect <='0';
+                    end if;
+                    override_dataout <= store_value(to_integer(stored_counter2));
+                end if;
+                if(override_in = '1')then
+                    save_counter <= save_counter+1;
+                    save_value(to_integer(save_counter)) <= override_datain;
+                end if;
             end if;
         end process;
 
-        next_red            <= unsigned (redirection_output(17 downto 16));   
+        next_red            <= unsigned (redirection_output(18 downto 16));   
         red_mode            <= redirection_output(15 downto 14);   
         sel_redA             <= redirection_output(13 downto 12);
         sel_redB             <= redirection_output(11 downto 10);

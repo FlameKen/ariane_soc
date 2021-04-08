@@ -6,16 +6,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package instr_pkg2 is
-	constant AL				: integer := 3; -- address length of flow memory
-	constant DW				: integer := 12; -- data size of flow memory
+	constant AL				: integer := 4; -- address length of flow memory
+	constant DW				: integer := 13; -- data size of flow memory
 	-- constant DW				: integer := 17; -- data size of flow memory
 	type flow_mem is array(0 to 2**AL - 1)  of std_logic_vector(DW - 1 downto 0);
-	constant AL2				: integer := 3; -- address length of assertion memory
-	constant AL3				: integer := 2; -- address length of assertion memory
+	constant AL2				: integer := 4; -- address length of assertion memory
+	constant AL3				: integer := 3; -- address length of assertion memory
 	constant DW2				: integer := 20; -- data size of assertion memory
-	constant DW3				: integer := 18; -- data size of redirect memory
+	constant DW3				: integer := 19; -- data size of redirect memory
 	type flow_mem2 is array(0 to 2**AL2 - 1)  of std_logic_vector(DW2 - 1 downto 0);
 	type flow_mem3 is array(0 to 2**AL3 - 1)  of std_logic_vector(DW3 - 1 downto 0);
+	type stored 	is array (0 to 2**AL - 1) of std_logic_vector(32 downto 0);
 	constant STOR			: std_logic_vector(1 downto 0) := "00";
 	constant STMV			: std_logic_vector(1 downto 0) := "01";
 	constant ALRM			: std_logic_vector(1 downto 0) := "10";

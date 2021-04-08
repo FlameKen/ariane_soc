@@ -163,7 +163,9 @@ logic bool;
     always@(*)begin
         bool = 0;
         for(integer i = 0 ; i <ariane_soc::NB_PERIPHERALS;i++ )begin
-            if(bool == 0 && valid_i[i] == 1 && redirection_idle[target] == 1 )begin
+            // if(bool == 0 && valid_i[i] == 1 && redirection_idle[target] == 1 )begin
+            //cannot get target if valid_o = 0
+            if(bool == 0 && valid_i[i] == 1 )begin
                 valid_o[i] = 1;
                 bool = 1;
             end

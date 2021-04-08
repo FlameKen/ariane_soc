@@ -67,7 +67,7 @@ logic [19:0] ext_act_in;
 logic [2:0] ext_addr;
 logic [17:0] re_ext_data_in;
 logic re_ext_wr;
-logic [1:0] re_ext_addr;
+logic [2:0] re_ext_addr;
 logic [3:0] source;
 logic [3:0] target;
 ///////////////////////////////////////////////////////////////////////////

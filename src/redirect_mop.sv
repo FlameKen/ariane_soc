@@ -51,8 +51,8 @@ module load_instruction(
   output logic re_ext_wr,
   output  logic [10:0] ext_data_in,
   output  logic [19:0] ext_act_in,
-  output  logic [17:0] re_ext_data_in,
-  output logic [1:0]   re_ext_addr,
+  output  logic [18:0] re_ext_data_in,
+  output logic [2:0]   re_ext_addr,
   output logic [2:0] ext_addr
 
 );
@@ -64,11 +64,12 @@ logic [3:0] count;
 logic [31:0] test_data;
 logic [2:0] test_addr;
 logic  test_wr;
+// change is to decide which memory control to override
 assign ext_data_in = (change == 0)? test_data[10:0] : 0;
 assign ext_act_in = (change == 1)? test_data[19:0] : 0;
 assign re_ext_data_in = (change == 2)? test_data[17:0] : 0;
 assign ext_addr = (change[1] == 0) ? test_addr : 0;
-assign re_ext_addr = (change[1] == 1) ? test_addr[1:0] : 0;
+assign re_ext_addr = (change[1] == 1) ? test_addr : 0;
 assign ext_wr = (change[1] == 0) ? test_wr : 0;
 assign re_ext_wr = (change[1] == 1) ? test_wr : 0;
 always@(*)begin

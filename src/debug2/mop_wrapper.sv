@@ -15,6 +15,7 @@ module mop_wrapper #(
            input  logic valid_i,
            output  logic valid_o,
            output  logic    [31:0] instrut_value,
+           output logic MoP_override,
            output logic [1:0] change,
            output logic [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl, 
            REG_BUS.in  external_bus_io
@@ -64,19 +65,14 @@ assign external_bus_io.error = 1'b0;
 assign request = 0;
 assign receive = 0;
 assign valid_o = 0;
-// redirect_mop r_mop(
-//     .clk_i(clk_i),
-//     .rst_ni(rst_ni),
-//     .target(14),
-//     .source(5),
-//     .override(override|override_update),
-//     .valid_i(valid_i),
-//     .valid_o(valid_o),
-//     .request(request),
-//     .receive(receive)
-// );
 // ///////////////////////////////////////////////////////////////////////////
 // // Implement APB I/O map to PKT interface
+always@(*)begin
+    if(state == 0)
+        MoP_override = 0;
+    else  
+        MoP_override = 1; 
+end
 always @(posedge clk_i)
     begin
     if(~rst_ni)begin
@@ -133,7 +129,7 @@ always @(posedge clk_i)
                 count <= count+1;
             end
             else begin
-                if(count == 4)
+                if(count == 8)
                     state <= CTRL_IDLE;
                 load_ctrl[target] <= 0;
             end

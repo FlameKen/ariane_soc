@@ -1,96 +1,3 @@
-// module aes2_wrapper #(
-//     parameter int ADDR_WIDTH         = 32,   // width of external address bus
-//     parameter int DATA_WIDTH         = 32   // width of external data bus
-// )(
-//            clk_i,
-//            rst_ni,
-//            external_bus_io
-//        );
-
-//     input  logic                   clk_i;
-//     input  logic                   rst_ni;
-//     REG_BUS.in                     external_bus_io;
-
-// // internal signals
-
-// logic start;
-// // internal signals - sc456
-// logic [31:0] firmware [127:0];
-// // logic [31:0] test [7:0];
-// logic [31:0]reg_address;
-// logic [31:0]reg_data;
-
-// logic [31:0] storage;
-// logic [31:0] out_wdata;
-// logic [31:0] test_addr;
-
-// // firmware[1] : address firmware[2] : data IP transfer itself
-// assign test_addr = (firmware[1] - ariane_soc::AES2Base);
-// assign external_bus_io.ready = 1'b1;
-// assign external_bus_io.error = 1'b0;
-
-// ///////////////////////////////////////////////////////////////////////////
-// // Implement APB I/O map to AES interface
-// // Write side
-// always @(posedge clk_i)
-//     begin
-//         if(~rst_ni)
-//             begin
-//                 start <= 0;
-//                 storage <= 0;
-//                 reg_address <= 0;
-//                 out_wdata <=0;
-//                 reg_data <= 0;
-//                 for(integer i = 0 ;i< 127;i=i+1)
-//                 begin
-//                     firmware[i]<=0;
-//                 end
-
-//             end
-//         else if(external_bus_io.write)
-//         begin
-//             if(external_bus_io.addr[8:2] == 2)
-//             begin
-//                 reg_data <= external_bus_io.wdata;
-//                 start <=1;
-//             end
-//             firmware[external_bus_io.addr[8:2]]<=external_bus_io.wdata;
-//         end
-//     end // always @ (posedge wb_clk_i)
-
-// always @(*)
-//     begin
-//             if(start == 1)
-//             begin
-//                 firmware[test_addr[8:2]] = firmware[2];
-//                 reg_address = reg_data;
-//             end
-//             external_bus_io.rdata = firmware[external_bus_io.addr[8:2]];
-        
-//     end // always @ (*)
-
-// // newmop mop1 (   
-// //                 .clk(clk_i),
-// //                 .reset(rst_ni),
-// //                 .i_addr({external_bus_io.addr}),
-// //                 .i_write(1'b0),
-// //                 .i_rdata(external_bus_io.rdata),
-// //                 .i_wdata(firmware[external_bus_io.addr[8:2]]),
-// //                 .i_valid(1'b1),
-// //                 .i_ready(external_bus_io.ready),
-// //                 .o_addr(firmware[102]),
-// //                 .o_write(storage[0]),
-// //                 .o_rdata(firmware[100]),
-// //                 .o_wdata(out_wdata),
-// //                 .o_valid(storage[1]),
-// //                 .o_ready(storage[2])
-
-// //             );
-// endmodule
-
-//////////////////////////////////////////////////////////////////////////////////
-
-
 module aes2_wrapper #(
     parameter LOG_N_INIT = 3,
     parameter int ADDR_WIDTH         = 32,   // width of external address bus
@@ -124,8 +31,7 @@ logic  [3:0]clock;
 logic [2:0]counter ;
 logic [31:0]finish_counter ;
 
-// assign external_bus_io.ready = 1'b1;
-assign external_bus_io.error = 1'b0;
+
 assign mop_bus_io.request = 0;
 assign mop_bus_io.valid_o = 0;
 assign mop_bus_io.receive = 0;
@@ -157,20 +63,25 @@ logic ext_wr;
 logic [11:0] ext_data_in;
 logic [19:0] ext_act_in;
 logic [2:0] ext_addr;
-logic [17:0] re_ext_data_in;
+logic [18:0] re_ext_data_in;
 logic re_ext_wr;
-logic [1:0] re_ext_addr;
+logic [2:0] re_ext_addr;
 logic [3:0] source;
 logic [3:0] target;
 ///////////////////////////////////////////////////////////////////////////
 logic test;
 ///////////////////////////////////////////////////////////////////////////
+assign source = 4'he;
+assign target = 4'h5;
 assign t_clk = clk_i;
 assign t_reset = ~rst_ni;
 assign t_i_addr = external_bus_io.addr;
 assign t_i_write = external_bus_io.write;
-assign t_i_rdata = external_bus_io.rdata;
-assign t_i_ready = external_bus_io.ready;
+assign t_i_ready = 1;
+assign t_i_error = 0;
+assign external_bus_io.ready = t_o_ready;
+assign external_bus_io.error = t_o_error;
+assign external_bus_io.rdata = t_o_rdata;
 assign t_i_wdata = external_bus_io.wdata;
 assign t_i_valid = external_bus_io.valid;
 assign t_i_wstrb = external_bus_io.wstrb;
@@ -189,7 +100,6 @@ always @(posedge clk_i)
                 p_c[3] <= 0;
                 counter <= 0 ;
                 finish_counter <= 0; 
-                external_bus_io.ready <= 1'b0;
                 state[0] <= 0;
                 state[1] <= 0;
                 state[2] <= 0;
@@ -197,75 +107,69 @@ always @(posedge clk_i)
                 // clock <= 0;
                 // $display("start at : %d, clock %b\n",testCycle,clk_i);
             end
-        else if(external_bus_io.write)begin
-            counter <= counter+1;
-            if(counter == 5)
-                external_bus_io.ready <= 1'b1;
-            case(external_bus_io.addr[8:2])
+        else if(t_o_write)begin
+            case(t_o_addr[8:2])
                 0:
-                    start  <= reglk_ctrl_i[1] ? start  : external_bus_io.wdata[0];
+                    start  <= reglk_ctrl_i[1] ? start  : t_o_wdata[0];
                 1:
-                    p_c[3] <= reglk_ctrl_i[3] ? p_c[3] : external_bus_io.wdata;
+                    p_c[3] <= reglk_ctrl_i[3] ? p_c[3] : t_o_wdata;
                 2:
-                    p_c[2] <= reglk_ctrl_i[3] ? p_c[2] : external_bus_io.wdata;
+                    p_c[2] <= reglk_ctrl_i[3] ? p_c[2] : t_o_wdata;
                 3:
-                    p_c[1] <= reglk_ctrl_i[3] ? p_c[1] : external_bus_io.wdata;
+                    p_c[1] <= reglk_ctrl_i[3] ? p_c[1] : t_o_wdata;
                 4:
-                    p_c[0] <= reglk_ctrl_i[3] ? p_c[0] : external_bus_io.wdata;
+                    p_c[0] <= reglk_ctrl_i[3] ? p_c[0] : t_o_wdata;
                 5:   
-                    key0[5] <= reglk_ctrl_i[5] ? key0[5] : external_bus_io.wdata;
+                    key0[5] <= reglk_ctrl_i[5] ? key0[5] : t_o_wdata;
                 6:                                        
-                    key0[4] <= reglk_ctrl_i[5] ? key0[4] : external_bus_io.wdata;
+                    key0[4] <= reglk_ctrl_i[5] ? key0[4] : t_o_wdata;
                 7:                                        
-                    key0[3] <= reglk_ctrl_i[5] ? key0[3] : external_bus_io.wdata;
+                    key0[3] <= reglk_ctrl_i[5] ? key0[3] : t_o_wdata;
                 8:                                        
-                    key0[2] <= reglk_ctrl_i[5] ? key0[2] : external_bus_io.wdata;
+                    key0[2] <= reglk_ctrl_i[5] ? key0[2] : t_o_wdata;
                 9:                                        
-                    key0[1] <= reglk_ctrl_i[5] ? key0[1] : external_bus_io.wdata;
+                    key0[1] <= reglk_ctrl_i[5] ? key0[1] : t_o_wdata;
                 10:
-                    key0[0] <= reglk_ctrl_i[5] ? key0[0] : external_bus_io.wdata;
+                    key0[0] <= reglk_ctrl_i[5] ? key0[0] : t_o_wdata;
                 16:
-                    state[3] <= reglk_ctrl_i[7] ? state[3] : external_bus_io.wdata;
+                    state[3] <= reglk_ctrl_i[7] ? state[3] : t_o_wdata;
                 17:                                        
-                    state[2] <= reglk_ctrl_i[7] ? state[2] : external_bus_io.wdata;
+                    state[2] <= reglk_ctrl_i[7] ? state[2] : t_o_wdata;
                 18:                                        
-                    state[1] <= reglk_ctrl_i[7] ? state[1] : external_bus_io.wdata;
+                    state[1] <= reglk_ctrl_i[7] ? state[1] : t_o_wdata;
                 19:                                        
-                    state[0] <= reglk_ctrl_i[7] ? state[0] : external_bus_io.wdata;
+                    state[0] <= reglk_ctrl_i[7] ? state[0] : t_o_wdata;
                 20:
-                    key1[5] <= reglk_ctrl_i[5] ? key1[5] : external_bus_io.wdata;
+                    key1[5] <= reglk_ctrl_i[5] ? key1[5] : t_o_wdata;
                 21:                                       
-                    key1[4] <= reglk_ctrl_i[5] ? key1[4] : external_bus_io.wdata;
+                    key1[4] <= reglk_ctrl_i[5] ? key1[4] : t_o_wdata;
                 22:                                       
-                    key1[3] <= reglk_ctrl_i[5] ? key1[3] : external_bus_io.wdata;
+                    key1[3] <= reglk_ctrl_i[5] ? key1[3] : t_o_wdata;
                 23:                                       
-                    key1[2] <= reglk_ctrl_i[5] ? key1[2] : external_bus_io.wdata;
+                    key1[2] <= reglk_ctrl_i[5] ? key1[2] : t_o_wdata;
                 24:                                       
-                    key1[1] <= reglk_ctrl_i[5] ? key1[1] : external_bus_io.wdata;
+                    key1[1] <= reglk_ctrl_i[5] ? key1[1] : t_o_wdata;
                 25:                                        
-                    key1[0] <= reglk_ctrl_i[5] ? key1[0] : external_bus_io.wdata;
+                    key1[0] <= reglk_ctrl_i[5] ? key1[0] : t_o_wdata;
                 26:
-                    key2[5] <= reglk_ctrl_i[5] ? key2[5] : external_bus_io.wdata;
+                    key2[5] <= reglk_ctrl_i[5] ? key2[5] : t_o_wdata;
                 27:                                       
-                    key2[4] <= reglk_ctrl_i[5] ? key2[4] : external_bus_io.wdata;
+                    key2[4] <= reglk_ctrl_i[5] ? key2[4] : t_o_wdata;
                 28:                                       
-                    key2[3] <= reglk_ctrl_i[5] ? key2[3] : external_bus_io.wdata;
+                    key2[3] <= reglk_ctrl_i[5] ? key2[3] : t_o_wdata;
                 29:                                       
-                    key2[2] <= reglk_ctrl_i[5] ? key2[2] : external_bus_io.wdata;
+                    key2[2] <= reglk_ctrl_i[5] ? key2[2] : t_o_wdata;
                 30:                                       
-                    key2[1] <= reglk_ctrl_i[5] ? key2[1] : external_bus_io.wdata;
+                    key2[1] <= reglk_ctrl_i[5] ? key2[1] : t_o_wdata;
                 31:                                        
-                    key2[0] <= reglk_ctrl_i[5] ? key2[0] : external_bus_io.wdata;
+                    key2[0] <= reglk_ctrl_i[5] ? key2[0] : t_o_wdata;
                 32: 
-                    key_sel <= reglk_ctrl_i[5] ? key_sel : external_bus_io.wdata;
-                33:
-                    finish_counter <= external_bus_io.wdata;
+                    key_sel <= reglk_ctrl_i[5] ? key_sel : t_o_wdata;
+                // 33:
+                    // $display("clock : %d\n",testCycle);
                 default:
                     ;
             endcase
-        end
-        else begin
-            counter <= 0;
         end
     end // always @ (posedge wb_clk_i)
 
@@ -274,102 +178,82 @@ always @(posedge clk_i)
 //always @(~external_bus_io.write)
 always @(*)
     begin
-        case(external_bus_io.addr[8:2])
+            case(t_o_addr[8:2])
             0:
-                external_bus_io.rdata = reglk_ctrl_i[0] ? 'b0 : {31'b0, start};
+                t_i_rdata = reglk_ctrl_i[0] ? 'b0 : {31'b0, start};
             1:
-                external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[3];
+                t_i_rdata = reglk_ctrl_i[2] ? 'b0 : p_c[3];
             2:
-                external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[2];
+                t_i_rdata = reglk_ctrl_i[2] ? 'b0 : p_c[2];
             3:
-                external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[1];
+                t_i_rdata = reglk_ctrl_i[2] ? 'b0 : p_c[1];
             4:
-                external_bus_io.rdata = reglk_ctrl_i[2] ? 'b0 : p_c[0];
+                t_i_rdata = reglk_ctrl_i[2] ? 'b0 : p_c[0];
             11:
-                external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, ct_valid};
-                // external_bus_io.rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, test};
+                t_i_rdata = reglk_ctrl_i[6] ? 'b0 : {31'b0, ct_valid};
             12:
-                external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[31:0];
+                t_i_rdata = reglk_ctrl_i[4] ? 'b0 : ct[31:0];
             13:                                                 
-                external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[63:32];
+                t_i_rdata = reglk_ctrl_i[4] ? 'b0 : ct[63:32];
             14:                                                 
-                external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[95:64];
+                t_i_rdata = reglk_ctrl_i[4] ? 'b0 : ct[95:64];
             15:                                                 
-                external_bus_io.rdata = reglk_ctrl_i[4] ? 'b0 : ct[127:96];
+                t_i_rdata = reglk_ctrl_i[4] ? 'b0 : ct[127:96];
             default:
-                external_bus_io.rdata = 32'b0;
-        endcase
+                t_i_rdata = 32'b0;
+            endcase
     end // always @ (*)
-newmop_5 mop(   
-                .clk(clk_i),
-                .reset(~rst_ni),
-                .i_addr(t_i_addr),
-                .i_write(t_i_write),
-                .i_rdata(t_i_rdata),
-                .i_wdata(t_i_wdata),
-                .i_wstrb(t_i_wstrb),
-                .i_error(t_i_error),
-                .i_valid(t_i_valid),
-                .i_ready(t_i_ready),
-                .o_addr(t_o_addr),
-                .o_write(t_o_write),
-                .o_rdata(t_o_rdata),
-                .o_wdata(t_o_wdata),
-                .o_valid(t_o_valid),
-                .o_wstrb(t_o_wstrb),
-                .o_error(t_o_error),
-                .o_ready(t_o_ready),
-                .alarm(alarm),
-                .ext_wr(ext_wr),
-                .ext_data_in(ext_data_in),
-                .ext_act_in(ext_act_in),
-                .ext_addr(ext_addr),
-                .re_ext_wr(re_ext_wr),
-                .re_ext_data_in(re_ext_data_in),
-                .re_ext_addr(re_ext_addr),
-                .redirection(override),
-                .source(source),
-                .target(target),
-                .idle(mop_bus_io.idle_IP)
-            );
-load_instruction load(
-            .clk_i(clk_i),
-            .rst_ni(rst_ni),
-            .instrut_value(mop_bus_io.instrut_value),
-            .load_ctrl(mop_bus_io.load_ctrl),
-            .id(ariane_soc::AES2),
-            .ext_wr(ext_wr),
-            .ext_data_in(ext_data_in),
-            .ext_addr(ext_addr),
-            .re_ext_wr(re_ext_wr),
-            .ext_act_in(ext_act_in),
-            .re_ext_data_in(re_ext_data_in),
-            .re_ext_addr(re_ext_addr),
-            .change(mop_bus_io.change)
+remop_redirec mop(   
+    .clk                (   clk_i                   ),
+    .reset              (   ~rst_ni                 ),
+    .i_addr             (   t_i_addr                ),
+    .i_write            (   t_i_write               ),
+    .i_rdata            (   t_i_rdata               ),
+    .i_wdata            (   t_i_wdata               ),
+    .i_wstrb            (   t_i_wstrb               ),
+    .i_error            (   t_i_error               ),
+    .i_valid            (   t_i_valid               ),
+    .i_ready            (   t_i_ready               ),
+    .o_addr             (   t_o_addr                ),
+    .o_write            (   t_o_write               ),
+    .o_rdata            (   t_o_rdata               ),
+    .o_wdata            (   t_o_wdata               ),
+    .o_valid            (   t_o_valid               ),
+    .o_wstrb            (   t_o_wstrb               ),
+    .o_error            (   t_o_error               ),
+    .o_ready            (   t_o_ready               ),
+    .alarm              (   alarm                   ),
+    .ext_wr             (   ext_wr                  ),
+    .ext_data_in        (   {1'b0,ext_data_in}      ),
+    .ext_act_in         (   ext_act_in              ),
+    .ext_addr           (   {1'b0,ext_addr}         ),
+    .re_ext_wr          (   re_ext_wr               ),
+    .re_ext_data_in     (   re_ext_data_in          ),
+    .re_ext_addr        (   re_ext_addr             ),
+    .redirection        (   override                ),
+    // .source             (   source                  ),
+    // .target             (   target                  ),
+    .override_in        (   mop_bus_io.override_in  ),
+    .override_dataout   (   mop_bus_io.re_data_out  ),
+    .override_out       (   mop_bus_io.override_out ),
+    .override_datain    (   mop_bus_io.re_data_in   ),
+    .idle               (   mop_bus_io.idle_IP      )
 );
-// redirectmop mop(   
-//                 .clk(clk_i),
-//                 .reset(rst_ni),
-//                 .i_addr(t_i_addr),
-//                 .i_write(t_i_write),
-//                 .i_rdata(t_i_rdata),
-//                 .i_wdata(t_i_wdata),
-//                 .i_wstrb(t_i_wstrb),
-//                 .i_error(t_i_error),
-//                 .i_valid(t_i_valid),
-//                 .i_ready(t_i_ready),
-//                 .o_addr(t_o_addr),
-//                 .o_write(t_o_write),
-//                 .o_rdata(t_o_rdata),
-//                 .o_wdata(t_o_wdata),
-//                 .o_valid(t_o_valid),
-//                 .o_ready(t_o_ready),
-//                 .alarm(alarm),
-//                 .ext_wr(ext_wr),
-//                 .ext_data_in(ext_data_in),
-//                 .ext_act_in(ext_act_in),
-//                 .ext_addr(ext_addr)
-//             );
+load_instruction load(
+            .clk_i              (   clk_i                       ),
+            .rst_ni             (   rst_ni                      ),
+            .instrut_value      (   mop_bus_io.instrut_value    ),
+            .load_ctrl          (   mop_bus_io.load_ctrl        ),
+            .id                 (   ariane_soc::AES2            ),
+            .ext_wr             (   ext_wr                      ),
+            .re_ext_wr          (   re_ext_wr                   ),
+            .ext_data_in        (   ext_data_in                 ),
+            .ext_act_in         (   ext_act_in                  ),
+            .re_ext_data_in     (   re_ext_data_in              ),
+            .ext_addr           (   ext_addr                    ),
+            .re_ext_addr        (   re_ext_addr                 ),
+            .change             (   mop_bus_io.change           )
+);
 // select the proper key
 assign key_big = key_sel[1] ? key_big2 : ( key_sel[0] ? key_big1 : key_big0 );  
 aes_192_sed aes(

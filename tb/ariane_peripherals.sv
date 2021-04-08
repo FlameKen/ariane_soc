@@ -73,16 +73,21 @@ module ariane_peripherals #(
     input logic [ariane_soc::NB_PERIPHERALS-1 :0]  valid_o,
     output logic               spi_ss
 );
-logic [7:0] TEST_SIGNAL;
-logic [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]request;
-logic  [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]receive;
-logic  [LOG_N_INIT-1:0] request_2 [ariane_soc::NB_PERIPHERALS-1 :0];
-logic   [LOG_N_INIT-1:0]receive_2[ariane_soc::NB_PERIPHERALS-1 :0];
-logic [8*ariane_soc::NB_PERIPHERALS-1 :0]   reglk_ctrl; // Access control values
-logic [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl; // Access control values
-logic [31:0] instrut_value;
-logic [1:0]change;
-logic  [ariane_soc::NB_PERIPHERALS-1 :0]idle;
+logic   [7:0] TEST_SIGNAL;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]          request;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0] [LOG_N_INIT-1:0]          receive;
+logic   [LOG_N_INIT-1:0]                                            request_2[ariane_soc::NB_PERIPHERALS-1 :0];
+logic   [LOG_N_INIT-1:0]                                            receive_2[ariane_soc::NB_PERIPHERALS-1 :0];
+logic   [8*ariane_soc::NB_PERIPHERALS-1 :0]                         reglk_ctrl; // Access control values
+logic   [ariane_soc::NB_PERIPHERALS-1 :0]                           load_ctrl; // Access control values
+logic   [31:0]                                                      instrut_value;
+logic   [1:0]                                                       change;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0]                           idle;
+logic                                                               MoP_override;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0]                           override_in;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0]                           override_out;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0] [32:0]                    re_data_out;
+logic   [ariane_soc::NB_PERIPHERALS-1 :0] [32:0]                    re_data_in;
 assign redirection_idle = idle;
 
 genvar i;
@@ -797,9 +802,13 @@ endgenerate
         .valid_o            (valid_i[ariane_soc::AES]),
         .idle_IP            (idle[ariane_soc::AES]),
         .instrut_value      (instrut_value),
-        // .idle               (idle),
         .load_ctrl          ( load_ctrl),
+        .MoP_override       ( MoP_override),
         .change             ( change),
+        .override_in        ( override_out[ariane_soc::AES2]),
+        .override_out       ( override_out[ariane_soc::AES]),
+        .re_data_in    ( re_data_out[ariane_soc::AES2]),
+        .re_data_out   ( re_data_out[ariane_soc::AES]),
         .mop_o              ( mop_bus_aes)
     );
     aes_wrapper #(
@@ -810,12 +819,6 @@ endgenerate
         .key_in             ( aes_key_in             ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES+8-1:8*ariane_soc::AES] ),
         .testCycle          (testCycle),
-        // .request            (request[ariane_soc::AES]),
-        // .receive            (receive[ariane_soc::AES]),
-        // .valid_i            (valid_o[ariane_soc::AES]),
-        // .valid_o            (valid_i[ariane_soc::AES]),
-        // .instrut_value      (instrut_value),
-        // .load_ctrl          ( load_ctrl),
         .mop_bus_io         ( mop_bus_aes),
         .external_bus_io    ( reg_bus_aes            )
     );
@@ -925,9 +928,13 @@ endgenerate
         .valid_o            (valid_i[ariane_soc::AES2]),
         .instrut_value      (instrut_value),
         .idle_IP            (idle[ariane_soc::AES2]),
-        // .idle               (idle),
+        .MoP_override       ( MoP_override),
         .load_ctrl          ( load_ctrl),
         .change             ( change),
+        .override_in        ( override_out[ariane_soc::AES]),
+        .override_out       ( override_out[ariane_soc::AES2]),
+        .re_data_in         ( re_data_out[ariane_soc::AES]),
+        .re_data_out        ( re_data_out[ariane_soc::AES2]),
         .mop_o              ( mop_bus_aes2)
     );
     aes2_wrapper #(
@@ -936,12 +943,6 @@ endgenerate
         .clk_i              ( clk_i                  ),
         .rst_ni             ( rst_ni                 ),
         .reglk_ctrl_i       ( reglk_ctrl[8*ariane_soc::AES2+8-1:8*ariane_soc::AES2] ),
-        // .request            (request[ariane_soc::AES2]),
-        // .receive            (receive[ariane_soc::AES2]),
-        // .valid_i            (valid_o[ariane_soc::AES2]),
-        // .valid_o            (valid_i[ariane_soc::AES2]),
-        // .instrut_value      (instrut_value),
-        // .load_ctrl          ( load_ctrl),
         .mop_bus_io         ( mop_bus_aes2),
         .external_bus_io    ( reg_bus_aes2            )
     );
@@ -1893,6 +1894,7 @@ REG_BUS #(
         .valid_i            (valid_o[ariane_soc::MOP]),
         .valid_o            (valid_i[ariane_soc::MOP]),
         .instrut_value      (instrut_value),
+        .MoP_override       (MoP_override),
         .change             (change),
         .load_ctrl          (load_ctrl),
         .external_bus_io    ( reg_bus_mop       )
@@ -1902,18 +1904,22 @@ endmodule
 interface MOP_BUS #(
   parameter LOG_N_INIT = 5
 );
-  logic [LOG_N_INIT-1:0] request;
-  logic valid_i;
-  logic valid_o;
-  logic [31:0] instrut_value;
-  logic [1:0] change;
-  logic [LOG_N_INIT-1:0] receive;
-  logic idle_IP;
+  logic [LOG_N_INIT-1:0]    request;
+  logic                     valid_i;
+  logic                     valid_o;
+  logic [31:0]              instrut_value;
+  logic [1:0]               change;
+  logic                     MoP_override;
+  logic [LOG_N_INIT-1:0]    receive;
+  logic                     idle_IP;
+  logic                     override_in;
+  logic [32:0]              re_data_in;
+  logic                     override_out;
+  logic [32:0]              re_data_out;
 //   logic [ariane_soc::NB_PERIPHERALS-1 :0] idle;
   logic [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl;
-  modport in (input valid_i, instrut_value, load_ctrl, change, output idle_IP,valid_o,request,receive);
-  // modport out (output valid_i, instrut_value, load_ctrl, change, input valid_o,request,receive);
-  modport out (output valid_i, instrut_value, load_ctrl,change, input idle_IP,receive,valid_o,request);
+  modport in (input valid_i, instrut_value, load_ctrl,override_in,re_data_in ,change,MoP_override, output override_out,re_data_out,idle_IP,valid_o,request,receive);
+  modport out (output valid_i, instrut_value, load_ctrl,override_in,re_data_in,change,MoP_override, input override_out,re_data_out,idle_IP,receive,valid_o,request);
 
 endinterface
 module str_to_mop #(
@@ -1921,27 +1927,37 @@ module str_to_mop #(
 )
 (
 
-  output  logic          [LOG_N_INIT-1:0] request,
-  input  logic          valid_i,
-  output logic          idle_IP,
-  output  logic          valid_o,
-  input  logic [31:0]   instrut_value,
-  input  logic [1:0]    change,
+  output    logic   [LOG_N_INIT-1:0]                    request,
+  input     logic                                       valid_i,
+  output    logic                                       idle_IP,
+  output    logic                                       valid_o,
+  input     logic   [31:0]                              instrut_value,
+  input     logic   [1:0]                               change,
+  input     logic                                       override_in,
+  input     logic   [32:0]                              re_data_in,
+  output    logic                                       override_out,
+  output    logic   [32:0]                              re_data_out,
+  input     logic                                       MoP_override,
+  output    logic   [LOG_N_INIT-1:0]                    receive,
+  input     logic   [ariane_soc::NB_PERIPHERALS-1 :0]   load_ctrl,
+  MOP_BUS.out                                           mop_o
 //   input  logic [ariane_soc::NB_PERIPHERALS-1 :0] idle,
-  output logic          [LOG_N_INIT-1:0] receive,
-  input logic          [ariane_soc::NB_PERIPHERALS-1 :0] load_ctrl,
-  MOP_BUS.out  mop_o
 );
 
   always_comb begin
-    mop_o.valid_i = valid_i;
-    receive = mop_o.receive;
-    idle_IP = mop_o.idle_IP;
-    valid_o = mop_o.valid_o;
-    mop_o.instrut_value = instrut_value ;
-    mop_o.change = change;
+    mop_o.valid_i           =   valid_i;
+    receive                 =   mop_o.receive;
+    idle_IP                 =   mop_o.idle_IP;
+    valid_o                 =   mop_o.valid_o;
+    mop_o.instrut_value     =   instrut_value ;
+    mop_o.change            =   change;
+    mop_o.MoP_override      =   MoP_override;
+    request                 =   mop_o.request;
+    mop_o.load_ctrl         =   load_ctrl ;
+    mop_o.override_in       =   override_in;
+    override_out            =   mop_o.override_out;
+    re_data_out             =   mop_o.re_data_out;
+    mop_o.re_data_in = re_data_in;
     // mop_o.idle = idle;
-    request = mop_o.request;
-    mop_o.load_ctrl = load_ctrl ;
   end
 endmodule
